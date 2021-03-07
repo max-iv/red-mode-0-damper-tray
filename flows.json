@@ -7,13 +7,6 @@
         "info": ""
     },
     {
-        "id": "6fe6f7f3.1de668",
-        "type": "tab",
-        "label": "Device B",
-        "disabled": false,
-        "info": ""
-    },
-    {
         "id": "c4285970.3276d8",
         "type": "tab",
         "label": "web-app",
@@ -223,21 +216,6 @@
         }
     },
     {
-        "id": "21ff842d.62f36c",
-        "type": "serial-port",
-        "serialport": "/dev/rfcomm0",
-        "serialbaud": "115200",
-        "databits": "8",
-        "parity": "none",
-        "stopbits": "1",
-        "waitfor": "",
-        "newline": "12",
-        "bin": "bin",
-        "out": "count",
-        "addchar": "",
-        "responsetimeout": "1000"
-    },
-    {
         "id": "79250bf3.365cc4",
         "type": "mqtt-broker",
         "name": "MQTT Broker",
@@ -265,43 +243,25 @@
         "wholemsg": "false"
     },
     {
-        "id": "3dc818b4.124aa8",
-        "type": "serial-port",
-        "serialport": "/dev/rfcomm1",
-        "serialbaud": "115200",
-        "databits": "8",
-        "parity": "none",
-        "stopbits": "1",
-        "waitfor": "",
-        "dtr": "none",
-        "rts": "none",
-        "cts": "none",
-        "dsr": "none",
-        "newline": "12",
-        "bin": "bin",
-        "out": "count",
-        "addchar": "",
-        "responsetimeout": "1000"
-    },
-    {
         "id": "c427a7cd.35f1f8",
         "type": "websocket-listener",
         "path": "/setup/websocket",
         "wholemsg": "false"
     },
     {
-        "id": "ea743ee6.d8b55",
-        "type": "serial in",
-        "z": "5f562f66.a301e",
-        "name": "",
-        "serial": "21ff842d.62f36c",
-        "x": 90,
-        "y": 400,
-        "wires": [
-            [
-                "d5761f6c.c46e6"
-            ]
-        ]
+        "id": "3015577f.f8ec58",
+        "type": "serial-port",
+        "serialport": "/dev/ttyACM0",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "true",
+        "responsetimeout": ""
     },
     {
         "id": "93049b70.2dc5c8",
@@ -317,34 +277,6 @@
         "wires": []
     },
     {
-        "id": "3f988ea4.7ee392",
-        "type": "serial out",
-        "z": "5f562f66.a301e",
-        "name": "",
-        "serial": "21ff842d.62f36c",
-        "x": 760,
-        "y": 460,
-        "wires": []
-    },
-    {
-        "id": "f3f3f15.081c31",
-        "type": "function",
-        "z": "5f562f66.a301e",
-        "name": "CreateSettings",
-        "func": "var device = flow.get('device');\n//node.warn('newSetting = ' + flow.get('newSetting').toString())\n\nvar bufsize = 16;\nvar buffer = new ArrayBuffer(bufsize);\nvar settingsView = new DataView(buffer);\nsettingsView.setInt32(0, flow.get('newSetting'), true);\nsettingsView.setInt32(4, device.ledOn.value, true);\nsettingsView.setInt32(8, device.ledToggle.value, true);\nsettingsView.setInt32(12, device.loopDelay.value, true);\n\nreturn {topic:'settings',payload:Buffer.from(buffer)};\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 540,
-        "y": 460,
-        "wires": [
-            [
-                "3f988ea4.7ee392"
-            ]
-        ]
-    },
-    {
         "id": "30f384ea.cf21fc",
         "type": "function",
         "z": "5f562f66.a301e",
@@ -358,26 +290,8 @@
         "y": 40,
         "wires": [
             [
-                "89892a30.598e28"
-            ]
-        ]
-    },
-    {
-        "id": "d5761f6c.c46e6",
-        "type": "function",
-        "z": "5f562f66.a301e",
-        "name": "Read Serial Handshake",
-        "func": "if (flow.get('device') == undefined) return null;\nif (flow.get('newSetting') == undefined) return null;\nvar ib;\nvar device = flow.get('device');\nvar dataView     = new DataView(new ArrayBuffer(4));\nvar newSettingDone = 0;\nvar cubeInit = 0;\n\nfor (ib = 0; ib < 4; ++ib)   dataView.setUint8(ib, msg.payload[0 * 4 + 3 - ib]);\ncubeInit = dataView.getInt32(0);\nfor (ib = 0; ib < 4; ++ib)   dataView.setUint8(ib, msg.payload[1 * 4 + 3 - ib]);\nnewSettingDone = dataView.getInt32(0);\n\nvar newMsg = {topic:'userData', payload:[]};\nfor (var ii = 8; ii < msg.payload.length; ++ii) newMsg.payload[ii - 8] = msg.payload[ii];\n\nif (newSettingDone > 0) \n{\n    flow.set('newSetting', 0);\n}\nif(cubeInit == 1) \n{\n    flow.set('newSetting', 1);\n}\n\nreturn newMsg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 290,
-        "y": 400,
-        "wires": [
-            [
-                "d6a8ff2a.f4acd",
-                "f3f3f15.081c31"
+                "89892a30.598e28",
+                "48876f6b.6fca3"
             ]
         ]
     },
@@ -418,33 +332,15 @@
         ]
     },
     {
-        "id": "d6a8ff2a.f4acd",
-        "type": "function",
-        "z": "5f562f66.a301e",
-        "name": "Create Readings",
-        "func": "var ib;\nvar device = flow.get('device');\nvar dataView     = new DataView(new ArrayBuffer(4));\n\nfor (ib = 0; ib < 4; ++ib)   dataView.setUint8(ib, msg.payload[0 * 4 + 3 - ib]);\nvar ledState = dataView.getInt32(0);\nvar newSettingDoneMsg = {topic:'newSettingDone', payload:false} \n\nif (ledState != device.ledState.value)\n{\n    device.ledState.value = ledState;\n    newSettingDoneMsg.payload = true;\n}\n\nreturn newSettingDoneMsg;\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 550,
-        "y": 400,
-        "wires": [
-            [
-                "9115ea87.0ca208"
-            ]
-        ]
-    },
-    {
         "id": "1482e22f.57fa2e",
         "type": "http in",
         "z": "c4285970.3276d8",
-        "name": "/blinky-basic",
-        "url": "/blinky-basic",
+        "name": "/mode-0-damper",
+        "url": "/mode-0-damper",
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
-        "x": 110,
+        "x": 120,
         "y": 260,
         "wires": [
             [
@@ -478,7 +374,7 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "<!-- Body HTML -->\n    <div class='container' width=\"100%\">\n        <div class='row vert-pad' >\n            <div class='col-md-12'>\n                <a class=\"btn jumbotron-button btn-block big-text bold-text\" width='80%' href=\"/blinky-basic?name={{{payload.deviceAName}}}\" >\n                    <table width=\"100%\" alight=\"left\">\n                        <tr>\n                            <td width=\"30%\" align='center'> <img src=\"/img/basicYellow.png\" height=\"70px\"/></td>\n                            <td width=\"70%\" align=\"left\">Basic {{{payload.deviceAName}}}</td>\n                        </tr>\n                    </table>\n                </a>\n            </div>\n        </div>\n        <div class='row vert-pad' >\n            <div class='col-md-12'>\n                <a class=\"btn jumbotron-button btn-block big-text bold-text\" width='80%' href=\"/blinky-basic?name={{{payload.deviceBName}}}\" >\n                    <table width=\"100%\" alight=\"left\">\n                        <tr>\n                            <td width=\"30%\" align='center'> <img src=\"/img/basicYellow.png\" height=\"70px\"/></td>\n                            <td width=\"70%\" align=\"left\">Basic {{{payload.deviceBName}}}</td>\n                        </tr>\n                    </table>\n                </a>\n            </div>\n        </div>\n        <div class='row vert-pad' >\n            <div class='col-md-12'>\n                <a class=\"btn jumbotron-button btn-block big-text bold-text\" width='80%' href=\"/setup\" >\n                    <table width=\"100%\" alight=\"left\">\n                        <tr>\n                            <td width=\"30%\" align='center'> <img src=\"/img/basicYellow.png\" height=\"70px\"/></td>\n                            <td width=\"70%\" align=\"left\">Setup</td>\n                        </tr>\n                    </table>\n                </a>\n            </div>\n        </div>\n    </div>",
+        "template": "<!-- Body HTML -->\n    <div class='container' width=\"100%\">\n        <div class='row vert-pad' >\n            <div class='col-md-12'>\n                <a class=\"btn jumbotron-button btn-block big-text bold-text\" width='80%' href=\"/mode-0-damper?name={{{payload.deviceAName}}}\" >\n                    <table width=\"100%\" alight=\"left\">\n                        <tr>\n                            <td width=\"30%\" align='center'> <img src=\"/img/balance.png\" height=\"70px\"/></td>\n                            <td width=\"70%\" align=\"left\">Mode 0 Damper {{{payload.deviceAName}}}</td>\n                        </tr>\n                    </table>\n                </a>\n            </div>\n        </div>\n        <div class='row vert-pad' >\n            <div class='col-md-12'>\n                <a class=\"btn jumbotron-button btn-block big-text bold-text\" width='80%' href=\"/setup\" >\n                    <table width=\"100%\" alight=\"left\">\n                        <tr>\n                            <td width=\"30%\" align='center'> <img src=\"/img/basicYellow.png\" height=\"70px\"/></td>\n                            <td width=\"70%\" align=\"left\">Setup</td>\n                        </tr>\n                    </table>\n                </a>\n            </div>\n        </div>\n    </div>",
         "output": "str",
         "x": 830,
         "y": 180,
@@ -497,7 +393,7 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "Blinky-Lite Basic",
+        "template": "Mode 0 Damper",
         "output": "str",
         "x": 550,
         "y": 180,
@@ -535,7 +431,7 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "basicYellow.png",
+        "template": "balance.png",
         "output": "str",
         "x": 690,
         "y": 180,
@@ -759,7 +655,8 @@
         "wires": [
             [
                 "89892a30.598e28",
-                "557e4f40.b904e"
+                "557e4f40.b904e",
+                "48876f6b.6fca3"
             ]
         ]
     },
@@ -987,462 +884,6 @@
         ]
     },
     {
-        "id": "c42d0817.711ed8",
-        "type": "serial in",
-        "z": "6fe6f7f3.1de668",
-        "name": "",
-        "serial": "3dc818b4.124aa8",
-        "x": 90,
-        "y": 400,
-        "wires": [
-            [
-                "6b08fbdd.aca1c4"
-            ]
-        ]
-    },
-    {
-        "id": "1d85d064.f6624",
-        "type": "mqtt out",
-        "z": "6fe6f7f3.1de668",
-        "name": "Publish Readings",
-        "topic": "",
-        "qos": "0",
-        "retain": "false",
-        "broker": "79250bf3.365cc4",
-        "x": 1290,
-        "y": 400,
-        "wires": []
-    },
-    {
-        "id": "70b83752.b04fa8",
-        "type": "serial out",
-        "z": "6fe6f7f3.1de668",
-        "name": "",
-        "serial": "3dc818b4.124aa8",
-        "x": 760,
-        "y": 460,
-        "wires": []
-    },
-    {
-        "id": "a1d1cd9a.36668",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "CreateSettings",
-        "func": "var device = flow.get('device');\n//node.warn('newSetting = ' + flow.get('newSetting').toString())\n\nvar bufsize = 16;\nvar buffer = new ArrayBuffer(bufsize);\nvar settingsView = new DataView(buffer);\nsettingsView.setInt32(0, flow.get('newSetting'), true);\nsettingsView.setInt32(4, device.ledOn.value, true);\nsettingsView.setInt32(8, device.ledToggle.value, true);\nsettingsView.setInt32(12, device.loopDelay.value, true);\n\nreturn {topic:'settings',payload:Buffer.from(buffer)};\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 540,
-        "y": 460,
-        "wires": [
-            [
-                "70b83752.b04fa8"
-            ]
-        ]
-    },
-    {
-        "id": "6b08fbdd.aca1c4",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Read Serial Handshake",
-        "func": "if (flow.get('device') == undefined) return null;\nif (flow.get('newSetting') == undefined) return null;\nvar ib;\nvar device = flow.get('device');\nvar dataView     = new DataView(new ArrayBuffer(4));\nvar newSettingDone = 0;\nvar cubeInit = 0;\n\nfor (ib = 0; ib < 4; ++ib)   dataView.setUint8(ib, msg.payload[0 * 4 + 3 - ib]);\ncubeInit = dataView.getInt32(0);\nfor (ib = 0; ib < 4; ++ib)   dataView.setUint8(ib, msg.payload[1 * 4 + 3 - ib]);\nnewSettingDone = dataView.getInt32(0);\n\nvar newMsg = {topic:'userData', payload:[]};\nfor (var ii = 8; ii < msg.payload.length; ++ii) newMsg.payload[ii - 8] = msg.payload[ii];\n\nif (newSettingDone > 0) \n{\n    flow.set('newSetting', 0);\n}\nif(cubeInit == 1) \n{\n    flow.set('newSetting', 1);\n}\n\nreturn newMsg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 290,
-        "y": 400,
-        "wires": [
-            [
-                "ae0c8461.89ad58",
-                "a1d1cd9a.36668"
-            ]
-        ]
-    },
-    {
-        "id": "4ce7e408.2e4b1c",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Readings Alarm Scan",
-        "func": "if (!msg.payload) return null;\nvar device = flow.get('device');\ndevice.linkQuality.value     = global.get('linkQuality');\ndevice.signalLevel.value     = global.get('signalLevel');\nscalarAlarmScan(device, 'reading');\nvar newMsg = \n{\n    topic: flow.get('deviceProps').project + '/' + flow.get('deviceProps').deviceType + '/' + flow.get('deviceProps').name + '/reading',\n    payload: JSON.stringify(device)\n}\nreturn newMsg;\n\nfunction getActionArray(device, type, actionType)\n{\n    var actionArray = [];\n    var keys = Object.keys(device);\n    for (var ii = 0; ii < keys.length; ++ii)\n    {\n        if (device[keys[ii]].hasOwnProperty('type'))\n        {\n            if (device[keys[ii]].type == type)\n            {\n                if (device[keys[ii]].action == actionType)\n                {\n                    actionArray.push(device[keys[ii]]);\n                }\n            }\n        }\n    }\n    return actionArray;\n}\nfunction scalarAlarmScan(device, actionType)\n{\n    var actionArray = getActionArray(device, 'scalar', actionType);\n    if (actionArray.length > 0)\n    {\n        for (var ii = 0; ii < actionArray.length; ++ii)\n        {\n            actionArray[ii].alarm.value = 0;\n            if (!isNaN(actionArray[ii].value))\n            {\n                if (actionArray[ii].value < actionArray[ii].alarm.limits.low)  actionArray[ii].alarm.value = 1;\n                if (actionArray[ii].value < actionArray[ii].alarm.limits.lolo) actionArray[ii].alarm.value = 3;\n                if (actionArray[ii].value > actionArray[ii].alarm.limits.high) actionArray[ii].alarm.value = 2;\n                if (actionArray[ii].value > actionArray[ii].alarm.limits.hihi) actionArray[ii].alarm.value = 4;\n            }\n        }\n    }\n}\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 780,
-        "y": 400,
-        "wires": [
-            [
-                "7dfebadc.aad8d4"
-            ]
-        ]
-    },
-    {
-        "id": "d270f3eb.6d8eb",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Prepare MQTT topic",
-        "func": "var mqttArray = msg.topic.split('/');\nvar device = \n{\n    project     : mqttArray[0],\n    deviceType  : mqttArray[1],\n    name        : mqttArray[2],\n    prop        : mqttArray[3],\n};\nreturn {topic : msg.topic, payload:{topic:'readings', mqttDevice : device, payload:msg.payload}};",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 1300,
-        "y": 460,
-        "wires": [
-            [
-                "78ceea9e.d0b204"
-            ]
-        ]
-    },
-    {
-        "id": "ae0c8461.89ad58",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Create Readings",
-        "func": "var ib;\nvar device = flow.get('device');\nvar dataView     = new DataView(new ArrayBuffer(4));\n\nfor (ib = 0; ib < 4; ++ib)   dataView.setUint8(ib, msg.payload[0 * 4 + 3 - ib]);\nvar ledState = dataView.getInt32(0);\nvar newSettingDoneMsg = {topic:'newSettingDone', payload:false} \n\nif (ledState != device.ledState.value)\n{\n    device.ledState.value = ledState;\n    newSettingDoneMsg.payload = true;\n}\n\nreturn newSettingDoneMsg;\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 550,
-        "y": 400,
-        "wires": [
-            [
-                "4ce7e408.2e4b1c"
-            ]
-        ]
-    },
-    {
-        "id": "939a1de0.390e6",
-        "type": "mqtt in",
-        "z": "6fe6f7f3.1de668",
-        "name": "Subscribe DeviceB",
-        "topic": "$(MQTTDEVICEB)",
-        "qos": "0",
-        "datatype": "auto",
-        "broker": "79250bf3.365cc4",
-        "x": 110,
-        "y": 140,
-        "wires": [
-            [
-                "5e2234b7.98c14c"
-            ]
-        ]
-    },
-    {
-        "id": "3a12980f.ce2c18",
-        "type": "inject",
-        "z": "6fe6f7f3.1de668",
-        "name": "deviceB",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": 0.1,
-        "topic": "deviceB",
-        "payload": "MQTTDEVICEB",
-        "payloadType": "env",
-        "x": 100,
-        "y": 40,
-        "wires": [
-            [
-                "ceedf2d6.a1478"
-            ]
-        ]
-    },
-    {
-        "id": "6e610f90.655c1",
-        "type": "file in",
-        "z": "6fe6f7f3.1de668",
-        "name": "Read device config",
-        "filename": "",
-        "format": "utf8",
-        "chunk": false,
-        "sendError": false,
-        "encoding": "none",
-        "x": 470,
-        "y": 40,
-        "wires": [
-            [
-                "cbb4b53f.c25c78"
-            ]
-        ]
-    },
-    {
-        "id": "cbb4b53f.c25c78",
-        "type": "json",
-        "z": "6fe6f7f3.1de668",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 630,
-        "y": 40,
-        "wires": [
-            [
-                "af83bd0c.71485"
-            ]
-        ]
-    },
-    {
-        "id": "ceedf2d6.a1478",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Init flow Variables",
-        "func": "var mqttSplit = msg.payload.split('/');\nvar deviceProps = {\n    project     :   mqttSplit[0],\n    deviceType  :   mqttSplit[1],\n    name        :   mqttSplit[2],\n    configFile  :   mqttSplit[1] + '-' + mqttSplit[2] + '.json'\n};\nflow.set('deviceProps',deviceProps);\nflow.set('newSetting',0);\nreturn {topic: 'readFile', 'filename':deviceProps.configFile};",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 270,
-        "y": 40,
-        "wires": [
-            [
-                "6e610f90.655c1"
-            ]
-        ]
-    },
-    {
-        "id": "5e2234b7.98c14c",
-        "type": "json",
-        "z": "6fe6f7f3.1de668",
-        "name": "",
-        "property": "payload",
-        "action": "obj",
-        "pretty": false,
-        "x": 270,
-        "y": 140,
-        "wires": [
-            [
-                "75fce7ca.f0d6c8"
-            ]
-        ]
-    },
-    {
-        "id": "75fce7ca.f0d6c8",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Filter MQTT",
-        "func": "return {topic:msg.topic.split('/')[3], payload:msg.payload};",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 410,
-        "y": 140,
-        "wires": [
-            [
-                "cce821ce.a0e66"
-            ]
-        ]
-    },
-    {
-        "id": "cce821ce.a0e66",
-        "type": "switch",
-        "z": "6fe6f7f3.1de668",
-        "name": "mqtt topic",
-        "property": "topic",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "eq",
-                "v": "setting",
-                "vt": "str"
-            },
-            {
-                "t": "eq",
-                "v": "ping",
-                "vt": "str"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 2,
-        "x": 600,
-        "y": 140,
-        "wires": [
-            [
-                "fbb88876.c4c108"
-            ],
-            [
-                "4ce7e408.2e4b1c"
-            ]
-        ]
-    },
-    {
-        "id": "19e23f42.d369b1",
-        "type": "file",
-        "z": "6fe6f7f3.1de668",
-        "name": "Init Settings",
-        "filename": "",
-        "appendNewline": true,
-        "createDir": false,
-        "overwriteFile": "true",
-        "encoding": "none",
-        "x": 1410,
-        "y": 120,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "e10c7268.2b005",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Make Pretty",
-        "func": "var jsonPretty = JSON.stringify(msg.payload,null,2);\nreturn {topic: msg.payload, payload:jsonPretty, 'filename':flow.get('deviceProps').configFile};",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 1230,
-        "y": 120,
-        "wires": [
-            [
-                "19e23f42.d369b1"
-            ]
-        ]
-    },
-    {
-        "id": "7641051d.e827ec",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Settings Alarm Scan",
-        "func": "scalarAlarmScan(msg.payload, 'setting');\nflow.set('device', msg.payload); \nflow.set('newSetting', 1); \nreturn msg;\n\nfunction getActionArray(device, type, actionType)\n{\n    var actionArray = [];\n    var keys = Object.keys(device);\n    for (var ii = 0; ii < keys.length; ++ii)\n    {\n        if (device[keys[ii]].hasOwnProperty('type'))\n        {\n            if (device[keys[ii]].type == type)\n            {\n                if (device[keys[ii]].action == actionType)\n                {\n                    actionArray.push(device[keys[ii]]);\n                }\n            }\n        }\n    }\n    return actionArray;\n}\nfunction scalarAlarmScan(device, actionType)\n{\n    var actionArray = getActionArray(device, 'scalar', actionType);\n    if (actionArray.length > 0)\n    {\n        for (var ii = 0; ii < actionArray.length; ++ii)\n        {\n            actionArray[ii].alarm.value = 0;\n            if (!isNaN(actionArray[ii].value))\n            {\n                if (actionArray[ii].value < actionArray[ii].alarm.limits.low)  actionArray[ii].alarm.value = 1;\n                if (actionArray[ii].value < actionArray[ii].alarm.limits.lolo) actionArray[ii].alarm.value = 3;\n                if (actionArray[ii].value > actionArray[ii].alarm.limits.high) actionArray[ii].alarm.value = 2;\n                if (actionArray[ii].value > actionArray[ii].alarm.limits.hihi) actionArray[ii].alarm.value = 4;\n            }\n        }\n    }\n}\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 1040,
-        "y": 120,
-        "wires": [
-            [
-                "e10c7268.2b005",
-                "bd443a3b.0a6be8"
-            ]
-        ]
-    },
-    {
-        "id": "7dfebadc.aad8d4",
-        "type": "delay",
-        "z": "6fe6f7f3.1de668",
-        "name": "Limit 1 Hz",
-        "pauseType": "rate",
-        "timeout": "5",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": true,
-        "x": 960,
-        "y": 400,
-        "wires": [
-            [
-                "b8163e61.ca11f"
-            ]
-        ]
-    },
-    {
-        "id": "c7f3b5bf.85c9a8",
-        "type": "link in",
-        "z": "6fe6f7f3.1de668",
-        "name": "Device B web socket in",
-        "links": [
-            "ea909034.6fb25"
-        ],
-        "x": 35,
-        "y": 240,
-        "wires": [
-            [
-                "f0198494.3993f8"
-            ]
-        ]
-    },
-    {
-        "id": "f0198494.3993f8",
-        "type": "json",
-        "z": "6fe6f7f3.1de668",
-        "name": "",
-        "property": "payload",
-        "action": "obj",
-        "pretty": false,
-        "x": 130,
-        "y": 240,
-        "wires": [
-            [
-                "7c714c69.8d9ff4"
-            ]
-        ]
-    },
-    {
-        "id": "78ceea9e.d0b204",
-        "type": "link out",
-        "z": "6fe6f7f3.1de668",
-        "name": "Device B web socket out",
-        "links": [
-            "d033193d.436d68"
-        ],
-        "x": 1435,
-        "y": 460,
-        "wires": []
-    },
-    {
-        "id": "b8163e61.ca11f",
-        "type": "gzip",
-        "z": "6fe6f7f3.1de668",
-        "name": "",
-        "x": 1090,
-        "y": 400,
-        "wires": [
-            [
-                "1d85d064.f6624",
-                "d270f3eb.6d8eb"
-            ]
-        ]
-    },
-    {
-        "id": "fbb88876.c4c108",
-        "type": "gzip",
-        "z": "6fe6f7f3.1de668",
-        "name": "",
-        "x": 750,
-        "y": 120,
-        "wires": [
-            [
-                "8dc8919d.3e443"
-            ]
-        ]
-    },
-    {
-        "id": "8dc8919d.3e443",
-        "type": "json",
-        "z": "6fe6f7f3.1de668",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 870,
-        "y": 120,
-        "wires": [
-            [
-                "7641051d.e827ec"
-            ]
-        ]
-    },
-    {
         "id": "f14573da.0a788",
         "type": "inject",
         "z": "c4285970.3276d8",
@@ -1522,52 +963,16 @@
         ]
     },
     {
-        "id": "1f42c9fb.9b0f16",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Filter Websocket",
-        "func": "var inputDeviceProps = msg.payload.topic.split('/');\nvar deviceProps = flow.get('deviceProps')\nif (inputDeviceProps[0] != deviceProps.project) return null;\nif (inputDeviceProps[1] != deviceProps.deviceType) return null;\nif (inputDeviceProps[2] != deviceProps.name) return null;\nreturn {topic:msg.topic, payload:msg.payload.payload};\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 450,
-        "y": 240,
-        "wires": [
-            [
-                "cce821ce.a0e66"
-            ]
-        ]
-    },
-    {
-        "id": "7c714c69.8d9ff4",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Shift Msg",
-        "func": "return msg.payload;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 270,
-        "y": 240,
-        "wires": [
-            [
-                "1f42c9fb.9b0f16"
-            ]
-        ]
-    },
-    {
         "id": "71ce0943.81bf18",
         "type": "function",
         "z": "c4285970.3276d8",
         "name": "Set Name And Device Type",
-        "func": "msg.payload['script'] = {};\nmsg.payload['script']['name'] = msg.payload.name\nmsg.payload['script']['deviceType'] = 'blinky-basic';\nmsg.payload['script']['project'] = global.get('project');\nreturn msg;\n",
+        "func": "msg.payload['script'] = {};\nmsg.payload['script']['name'] = msg.payload.name\nmsg.payload['script']['deviceType'] = 'mode-0-damper';\nmsg.payload['script']['project'] = global.get('project');\nreturn msg;\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
-        "x": 320,
+        "x": 360,
         "y": 260,
         "wires": [
             [
@@ -1584,9 +989,9 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "Blinky-Basic {{{payload.script.name}}}",
+        "template": "Mode 0 Damper {{{payload.script.name}}}",
         "output": "str",
-        "x": 260,
+        "x": 300,
         "y": 340,
         "wires": [
             [
@@ -1831,9 +1236,9 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "basicYellow.png",
+        "template": "balance.png",
         "output": "str",
-        "x": 270,
+        "x": 310,
         "y": 300,
         "wires": [
             [
@@ -1924,7 +1329,7 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "Blinky-Lite Basic",
+        "template": "Mode 0 Damper",
         "output": "str",
         "x": 550,
         "y": 120,
@@ -1962,7 +1367,7 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "basicYellow.png",
+        "template": "balance.png",
         "output": "str",
         "x": 690,
         "y": 120,
@@ -2409,7 +1814,7 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "<!-- navBar -->\n    <div class=\"jumbotron\" width=\"100%\">\n        <table width=\"100%\">\n            <tr>\n                <td style=\"text-align:left; vertical-align:middle;\"  width=\"20%\">\n                    <a href='https://www.blinky-lite.io/' target='_blank'>\n                        <img src=\"/img/BlinkyLogo.gif\" height=\"75px\"/>\n                    </a>                \n                </td>\n                <td width=\"60%\" style=\"text-align:center; vertical-align:middle;\">\n                    <h1 class=\"jumbotron-title big-text bold-text\">\n                        <img src=\"/img/{{{payload.navBarIcon}}}\" height=\"75px\" style=\"padding-right:20px;\"/><span>{{{payload.title}}}</span>\n                    </h1>\n                </td>\n                <td style=\"text-align:right; vertical-align:middle;\" width=\"20%\">\n                    <a href='/apps'><img src=\"/img/appsYellow.png\" height=\"75px\"/></a>\n                </td>\n            </tr>\n        </table>\n    </div>",
+        "template": "<!-- navBar -->\n    <div class=\"jumbotron\" width=\"100%\">\n        <table width=\"100%\">\n            <tr>\n                <td style=\"text-align:left; vertical-align:middle;\"  width=\"20%\">\n                    <a href='https://www.maxiv.lu.se/' target='_blank'>\n                        <img src=\"/img/MAX-IVYellow.png\" height=\"75px\"/>\n                    </a>                \n                </td>\n                <td width=\"60%\" style=\"text-align:center; vertical-align:middle;\">\n                    <h1 class=\"jumbotron-title big-text bold-text\">\n                        <img src=\"/img/{{{payload.navBarIcon}}}\" height=\"75px\" style=\"padding-right:20px;\"/><span>{{{payload.title}}}</span>\n                    </h1>\n                </td>\n                <td style=\"text-align:right; vertical-align:middle;\" width=\"20%\">\n                    <a href='/apps'><img src=\"/img/appsYellow.png\" height=\"75px\"/></a>\n                </td>\n            </tr>\n        </table>\n    </div>",
         "output": "str",
         "x": 200,
         "y": 80,
@@ -2568,7 +1973,7 @@
         "fieldType": "msg",
         "format": "css",
         "syntax": "mustache",
-        "template": "        :root \n        {\n          --color1: #415c71;\n          --color2: #547792;\n          --color3: #9eb5c7;\n          --color4: #c6c2bb;\n          --color5: #fdc300;\n          --big-text-size :300%;\n          --bold-text :900;\n          --vert-pad : 25px;\n          --horz-pad : 25px;\n        }\n        body \n        {\n          background-color: white !important;\n          padding-left:25px;\n          padding-right:25px;\n        }\n        \n        img \n        {\n          object-fit: contain;\n        }\n        a\n        {\n            color: white;\n        }\n        a:visited \n        { \n            color: var(--white);\n        }\n        a:hover \n        { \n            color: var(--color5);\n        }\n\n        .jumbotron \n        {\n          background-color: var(--color2) !important;\n          color: white;\n          padding-top:25px;\n          padding-bottom:25px;\n        }\n        .jumbotron-title\n        {\n          color:var(--color5);\n        }\n        .jumbotron-button\n        {\n          color: white;\n          background-color: var(--color1);\n       }\n        .card\n        {\n          background-color: var(--color2) !important;\n          text-align: center;\n        }\n        .card-body\n        {\n          background-color: var(--color3);;\n        }\n        .card-button\n        {\n          color: var(--color5) !important;\n          background-color: var(--color1) !important;\n          font-weight: bold;\n        }\n        .card-title\n        {\n          color: var(--color5);\n          font-weight: var(--bold-text);\n          font-size: var(--big-text-size);\n         }\n        .card-text\n        {\n          color: white;\n          text-align: left;\n          font-size: var(--big-text-size);\n        }\n        .danger-card\n        {\n          background-color: yellow !important;\n          text-align: center;\n        }\n        .danger-card-body\n        {\n          background-color: yellow;\n        }\n        .danger-card-button\n        {\n          color: yellow !important;\n          background-color: red !important;\n          font-weight: bold;\n        }\n        .danger-card-title\n        {\n          color: red;\n          font-weight: var(--bold-text);\n          font-size: var(--big-text-size);\n         }\n        .danger-card-text\n        {\n          color: white;\n          text-align: left;\n          font-size: var(--big-text-size);\n        }\n        .tableHeading\n        {\n          color:var(--container-title-color);\n        }\n        .tableText\n        {\n          color:var(--container-text-color);\n          font-size: var(--big-text-size);\n        }\n       .vert-pad\n        {\n            padding-top:var(--vert-pad);;\n            padding-bottom:var(--vert-pad);;\n        }\n        .horz-pad\n        {\n            padding-left:var(--horz-pad);;\n            padding-right:var(--horz-pad);;\n        }\n        .big-text\n        {\n            font-size: var(--big-text-size);\n        }\n        .bold-text\n        {\n            font-weight: var(--bold-text);\n        }\n       .ui-dialog-titlebar-close \n        {\n            visibility: hidden;\n        }\n        input.inputLarger \n        { \n            transform: scale(3); \n            margin: 1px;\n        }\n        .googleSlide4by3-container \n        {\n            position: relative;\n            overflow: hidden;\n            padding-top: 75.0%;\n        }\n        .googleSlide4by3-iframe {\n            position: absolute;\n            top: 0;\n            left: 0;\n            width: 100%;\n            height: 100%;\n            border: 0;\n        }        \n        .custom-select\n        {\n            color: black;\n            background-color: white;\n            height:80px;\n            line-height:70px;\n        }\n",
+        "template": "        :root \n        {\n          --color1: #434170;\n          --color2: #575491;\n          --color3: #9f9dc7;\n          --color4: #c6c2bb;\n          --color5: #fdc300;\n          --big-text-size :300%;\n          --bold-text :900;\n          --vert-pad : 25px;\n          --horz-pad : 25px;\n        }\n        body \n        {\n          background-color: white !important;\n          padding-left:25px;\n          padding-right:25px;\n        }\n        \n        img \n        {\n          object-fit: contain;\n        }\n        a\n        {\n            color: white;\n        }\n        a:visited \n        { \n            color: var(--white);\n        }\n        a:hover \n        { \n            color: var(--color5);\n        }\n\n        .jumbotron \n        {\n          background-color: var(--color2) !important;\n          color: white;\n          padding-top:25px;\n          padding-bottom:25px;\n        }\n        .jumbotron-title\n        {\n          color:var(--color5);\n        }\n        .jumbotron-button\n        {\n          color: white;\n          background-color: var(--color1);\n       }\n        .card\n        {\n          background-color: var(--color2) !important;\n          text-align: center;\n        }\n        .card-body\n        {\n          background-color: var(--color3);;\n        }\n        .card-button\n        {\n          color: var(--color5) !important;\n          background-color: var(--color1) !important;\n          font-weight: bold;\n        }\n        .card-title\n        {\n          color: var(--color5);\n          font-weight: var(--bold-text);\n          font-size: var(--big-text-size);\n         }\n        .card-text\n        {\n          color: white;\n          text-align: left;\n          font-size: var(--big-text-size);\n        }\n        .danger-card\n        {\n          background-color: yellow !important;\n          text-align: center;\n        }\n        .danger-card-body\n        {\n          background-color: yellow;\n        }\n        .danger-card-button\n        {\n          color: yellow !important;\n          background-color: red !important;\n          font-weight: bold;\n        }\n        .danger-card-title\n        {\n          color: red;\n          font-weight: var(--bold-text);\n          font-size: var(--big-text-size);\n         }\n        .danger-card-text\n        {\n          color: white;\n          text-align: left;\n          font-size: var(--big-text-size);\n        }\n        .tableHeading\n        {\n          color:var(--container-title-color);\n        }\n        .tableText\n        {\n          color:var(--container-text-color);\n          font-size: var(--big-text-size);\n        }\n       .vert-pad\n        {\n            padding-top:var(--vert-pad);;\n            padding-bottom:var(--vert-pad);;\n        }\n        .horz-pad\n        {\n            padding-left:var(--horz-pad);;\n            padding-right:var(--horz-pad);;\n        }\n        .big-text\n        {\n            font-size: var(--big-text-size);\n        }\n        .bold-text\n        {\n            font-weight: var(--bold-text);\n        }\n       .ui-dialog-titlebar-close \n        {\n            visibility: hidden;\n        }\n        input.inputLarger \n        { \n            transform: scale(3); \n            margin: 1px;\n        }\n        .googleSlide4by3-container \n        {\n            position: relative;\n            overflow: hidden;\n            padding-top: 75.0%;\n        }\n        .googleSlide4by3-iframe {\n            position: absolute;\n            top: 0;\n            left: 0;\n            width: 100%;\n            height: 100%;\n            border: 0;\n        }        \n        .custom-select\n        {\n            color: black;\n            background-color: white;\n            height:80px;\n            line-height:70px;\n        }\n",
         "output": "str",
         "x": 190,
         "y": 80,
@@ -2775,118 +2180,6 @@
         ]
     },
     {
-        "id": "af83bd0c.71485",
-        "type": "function",
-        "z": "6fe6f7f3.1de668",
-        "name": "Save device config in Memory",
-        "func": "msg.payload.reset.value = 0;\nflow.set('device', msg.payload);\nflow.set('newSetting', 1);\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "x": 830,
-        "y": 40,
-        "wires": [
-            [
-                "e10c7268.2b005"
-            ]
-        ]
-    },
-    {
-        "id": "409eac3d.a4e7f4",
-        "type": "switch",
-        "z": "6fe6f7f3.1de668",
-        "name": "Reset Tray",
-        "property": "payload.reset.value",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "eq",
-                "v": "1",
-                "vt": "num"
-            },
-            {
-                "t": "eq",
-                "v": "2",
-                "vt": "num"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 2,
-        "x": 950,
-        "y": 220,
-        "wires": [
-            [
-                "1f75fde1.b1c092"
-            ],
-            [
-                "5167521d.c6f10c"
-            ]
-        ]
-    },
-    {
-        "id": "1f75fde1.b1c092",
-        "type": "exec",
-        "z": "6fe6f7f3.1de668",
-        "command": "pm2 restart red",
-        "addpay": false,
-        "append": "",
-        "useSpawn": "false",
-        "timer": "",
-        "oldrc": false,
-        "name": "Restart",
-        "x": 1140,
-        "y": 200,
-        "wires": [
-            [],
-            [],
-            []
-        ]
-    },
-    {
-        "id": "5167521d.c6f10c",
-        "type": "exec",
-        "z": "6fe6f7f3.1de668",
-        "command": "sudo reboot",
-        "addpay": false,
-        "append": "",
-        "useSpawn": "false",
-        "timer": "",
-        "oldrc": false,
-        "name": "Reboot",
-        "x": 1140,
-        "y": 260,
-        "wires": [
-            [],
-            [],
-            []
-        ]
-    },
-    {
-        "id": "bd443a3b.0a6be8",
-        "type": "delay",
-        "z": "6fe6f7f3.1de668",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "2",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "x": 940,
-        "y": 180,
-        "wires": [
-            [
-                "409eac3d.a4e7f4"
-            ]
-        ]
-    },
-    {
         "id": "557e4f40.b904e",
         "type": "delay",
         "z": "5f562f66.a301e",
@@ -2950,7 +2243,7 @@
         "payload": "MQTTDEVICEA",
         "payloadType": "env",
         "x": 120,
-        "y": 20,
+        "y": 40,
         "wires": [
             [
                 "fdfbcac7.35b388"
@@ -2972,40 +2265,11 @@
         "wires": []
     },
     {
-        "id": "ea414af.510a1b8",
-        "type": "inject",
-        "z": "c4285970.3276d8",
-        "name": "deviceB",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": 0.1,
-        "topic": "deviceB",
-        "payload": "MQTTDEVICEB",
-        "payloadType": "env",
-        "x": 120,
-        "y": 60,
-        "wires": [
-            [
-                "fdfbcac7.35b388"
-            ]
-        ]
-    },
-    {
         "id": "af9642ae.0c0da",
         "type": "function",
         "z": "c4285970.3276d8",
         "name": "Device Names",
-        "func": "msg.payload['deviceAName'] = flow.get('deviceAProps').name;\nmsg.payload['deviceBName'] = flow.get('deviceBProps').name;\nreturn msg;",
+        "func": "msg.payload['deviceAName'] = flow.get('deviceAProps').name;\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -3017,5 +2281,405 @@
                 "f328fcb4.91dc"
             ]
         ]
+    },
+    {
+        "id": "aad8ecf5.c0443",
+        "type": "function",
+        "z": "5f562f66.a301e",
+        "name": "parse Settings",
+        "func": "var device = flow.get('device');\n\nvar teensyName = [\n    'chanOn0',\n    'timeOffset0',\n    'sign0',\n    'maxAcValue0',\n    'gain0',\n    'dacOffset0',\n    'chanOn1',\n    'timeOffset1',\n    'sign1',\n    'maxAcValue1',\n    'gain1',\n    'dacOffset1',\n    ];\nvar attrName = [\n    'onDipole',\n    'filterDipole',\n    'signDipole',\n    'maxAcDipole',\n    'gainDipole',\n    'offsetDipole',\n    'onQuad',\n    'filterQuad',\n    'signQuad',\n    'maxAcQuad',\n    'gainQuad',\n    'offsetQuad',\n    ]\nvar oldDevice = flow.get('oldDevice');\nvar payload = [];\nfor (var ii = 0; ii < 12; ++ii) payload[ii] = null;\nif (oldDevice == undefined)\n{\n    for (var ii = 0; ii < 12; ++ii)\n    {\n        payload[ii] = {topic:teensyName[ii], payload : device[ attrName[ii] ].value};\n    }\n}\nelse\n{\n    var icount = 0;\n    if (device[ attrName[ii] ].value != oldDevice[ attrName[ii] ].value)\n    {\n        payload[icount] = {topic:teensyName[ii], payload : device[ attrName[ii] ].value};\n        ++icount;\n    }\n}\nflow.set('oldDevice', JSON.parse(JSON.stringify(device)));    \n\nreturn payload;\n",
+        "outputs": 12,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 220,
+        "y": 800,
+        "wires": [
+            [
+                "67e5950f.722f3c"
+            ],
+            [
+                "93be835b.869d1"
+            ],
+            [
+                "8892880.2c7c678"
+            ],
+            [
+                "7cebc3d0.3b5f1c"
+            ],
+            [
+                "80a769ea.0ac978"
+            ],
+            [
+                "fe7b2c04.71751"
+            ],
+            [
+                "41fe307f.02975"
+            ],
+            [
+                "1b25d7d.6c8b428"
+            ],
+            [
+                "82e31b85.dbca28"
+            ],
+            [
+                "982e7037.66c01"
+            ],
+            [
+                "f05fb5d5.354688"
+            ],
+            [
+                "10d75af2.3c7ec5"
+            ]
+        ]
+    },
+    {
+        "id": "a4ad3242.87f7a",
+        "type": "function",
+        "z": "5f562f66.a301e",
+        "name": "Prep Teensy message",
+        "func": "return {topic:msg.topic, payload: (msg.topic + ' ' + msg.payload.toString())};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 700,
+        "y": 580,
+        "wires": [
+            [
+                "e04a3c2f.e165",
+                "f9af1957.a2e4e8"
+            ]
+        ]
+    },
+    {
+        "id": "93be835b.869d1",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 620,
+        "wires": [
+            [
+                "67e5950f.722f3c"
+            ]
+        ]
+    },
+    {
+        "id": "8892880.2c7c678",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 660,
+        "wires": [
+            [
+                "93be835b.869d1"
+            ]
+        ]
+    },
+    {
+        "id": "7cebc3d0.3b5f1c",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 700,
+        "wires": [
+            [
+                "8892880.2c7c678"
+            ]
+        ]
+    },
+    {
+        "id": "80a769ea.0ac978",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 740,
+        "wires": [
+            [
+                "7cebc3d0.3b5f1c"
+            ]
+        ]
+    },
+    {
+        "id": "fe7b2c04.71751",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 780,
+        "wires": [
+            [
+                "80a769ea.0ac978"
+            ]
+        ]
+    },
+    {
+        "id": "41fe307f.02975",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 820,
+        "wires": [
+            [
+                "fe7b2c04.71751"
+            ]
+        ]
+    },
+    {
+        "id": "1b25d7d.6c8b428",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 860,
+        "wires": [
+            [
+                "41fe307f.02975"
+            ]
+        ]
+    },
+    {
+        "id": "82e31b85.dbca28",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 900,
+        "wires": [
+            [
+                "1b25d7d.6c8b428"
+            ]
+        ]
+    },
+    {
+        "id": "982e7037.66c01",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 940,
+        "wires": [
+            [
+                "82e31b85.dbca28"
+            ]
+        ]
+    },
+    {
+        "id": "f05fb5d5.354688",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 980,
+        "wires": [
+            [
+                "982e7037.66c01"
+            ]
+        ]
+    },
+    {
+        "id": "10d75af2.3c7ec5",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 1020,
+        "wires": [
+            [
+                "f05fb5d5.354688"
+            ]
+        ]
+    },
+    {
+        "id": "67e5950f.722f3c",
+        "type": "delay",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "500",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 490,
+        "y": 580,
+        "wires": [
+            [
+                "a4ad3242.87f7a"
+            ]
+        ]
+    },
+    {
+        "id": "e04a3c2f.e165",
+        "type": "serial out",
+        "z": "5f562f66.a301e",
+        "name": "Teensy3.5",
+        "serial": "3015577f.f8ec58",
+        "x": 890,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "48876f6b.6fca3",
+        "type": "link out",
+        "z": "5f562f66.a301e",
+        "name": "new settings",
+        "links": [
+            "dc207a50.928308"
+        ],
+        "x": 1205,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "dc207a50.928308",
+        "type": "link in",
+        "z": "5f562f66.a301e",
+        "name": "settings to teensy",
+        "links": [
+            "48876f6b.6fca3"
+        ],
+        "x": 95,
+        "y": 800,
+        "wires": [
+            [
+                "aad8ecf5.c0443"
+            ]
+        ]
+    },
+    {
+        "id": "f9af1957.a2e4e8",
+        "type": "debug",
+        "z": "5f562f66.a301e",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 520,
+        "wires": []
     }
 ]
