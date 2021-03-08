@@ -239,7 +239,7 @@
     {
         "id": "44b51478.9c022c",
         "type": "websocket-listener",
-        "path": "/blinky-basic/websocket",
+        "path": "/mode-0-damper/websocket",
         "wholemsg": "false"
     },
     {
@@ -281,7 +281,7 @@
         "type": "function",
         "z": "5f562f66.a301e",
         "name": "Save device config in Memory",
-        "func": "msg.payload.reset.value = 0;\nflow.set('device', msg.payload);\nflow.set('newSetting', 1);\nreturn msg;",
+        "func": "msg.payload.reset.value = 0;\nflow.set('device', msg.payload);\nflow.set('initDevice', true);\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -526,7 +526,7 @@
         "type": "function",
         "z": "5f562f66.a301e",
         "name": "Init flow Variables",
-        "func": "var mqttSplit = msg.payload.split('/');\nvar deviceProps = {\n    project     :   mqttSplit[0],\n    deviceType  :   mqttSplit[1],\n    name        :   mqttSplit[2],\n    configFile  :   mqttSplit[1] + '-' + mqttSplit[2] + '.json'\n};\nflow.set('deviceProps',deviceProps);\nflow.set('newSetting',0);\nreturn {topic: 'readFile', 'filename':deviceProps.configFile};",
+        "func": "var mqttSplit = msg.payload.split('/');\nvar deviceProps = {\n    project     :   mqttSplit[0],\n    deviceType  :   mqttSplit[1],\n    name        :   mqttSplit[2],\n    configFile  :   mqttSplit[1] + '-' + mqttSplit[2] + '.json'\n};\nflow.set('deviceProps',deviceProps);\nflow.set('initDevice',false);\nreturn {topic: 'readFile', 'filename':deviceProps.configFile};",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -744,10 +744,10 @@
         "id": "cf44f6bf.8956b8",
         "type": "websocket in",
         "z": "c4285970.3276d8",
-        "name": "/blinky-basic/websocket",
+        "name": "/mode-0-damper/websocket",
         "server": "44b51478.9c022c",
         "client": "",
-        "x": 140,
+        "x": 160,
         "y": 720,
         "wires": [
             [
@@ -759,10 +759,10 @@
         "id": "62aaa250.9b67dc",
         "type": "websocket out",
         "z": "c4285970.3276d8",
-        "name": "/blinky-basic/websocket",
+        "name": "/mode-0-damper/websocket",
         "server": "44b51478.9c022c",
         "client": "",
-        "x": 830,
+        "x": 840,
         "y": 720,
         "wires": []
     },
@@ -775,7 +775,7 @@
             "2f289f87.fe2ff",
             "c7f3b5bf.85c9a8"
         ],
-        "x": 295,
+        "x": 315,
         "y": 720,
         "wires": []
     },
@@ -1000,25 +1000,6 @@
         ]
     },
     {
-        "id": "4943dafd.596124",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "script.stripChartWidget",
-        "field": "payload.script.stripChartWidget",
-        "fieldType": "msg",
-        "format": "javascript",
-        "syntax": "mustache",
-        "template": "// StripChart Widget\n        class StripChart\n        {\n           constructor(plotConfig) \n            {\n                this.plotConfig = plotConfig;\n                this.plotStartTime = new Date().getTime();\n                this.layout =\n                {\n                    showlegend  : true,\n                    legend      : { x: 0, y: 1.15},\n                    height      : plotConfig.height,\n                    width       : plotConfig.width,\n                    xaxis       :\n                    {\n//                        title: 'Seconds since ' + new Date(this.plotStartTime).toLocaleString(),\n                        type: 'date'\n                    },\n                    yaxis:\n                    {\n                        title           : plotConfig.trace1Title,\n                        titlefont       : {color: plotConfig.trace1Color},\n                        tickfont        : {color:plotConfig.trace1Color},\n                        gridcolor       : plotConfig.trace1GridColor,\n                        zerolinecolor   : plotConfig.trace1GridColor,\n                        linecolor       : plotConfig.trace1GridColor,\n//                        range: [0, 2]\n        \n                    },\n                    yaxis2:\n                    {\n                        title           : plotConfig.trace2Title,\n                        titlefont       : {color: plotConfig.trace2Color},\n                        tickfont        : {color:plotConfig.trace2Color},\n                        gridcolor       : plotConfig.trace2GridColor,\n                        zerolinecolor   : plotConfig.trace2GridColor,\n                        linecolor       : plotConfig.trace2GridColor,\n                        overlaying: 'y',\n                        side: 'right',\n//                        range: [0, 2]\n                    },\n                    margin: \n                        {\n                            t: 30, //top margin\n        //                    l: 0, //left margin\n        //                    r: 0, //right margin\n        //                    b: 20 //bottom margin\n                        },\n                };\n                this.trace1 = \n                {\n                    x: [],\n                    y: [],\n                    name: plotConfig.trace1Title,\n                    yaxis: 'y1',\n                    type: 'scatter',\n                    mode: 'markers',\n                    marker: {\n                        color: this.plotConfig.trace1Color,\n                        size: 10,\n                        symbol: 'circle'\n                    }        \n            \n                };\n                this.trace2 = \n                {\n                    x: [],\n                    y: [],\n                    name: plotConfig.trace2Title,\n                    yaxis: 'y2',\n                    type: 'scatter',\n                    mode: 'markers',\n                    marker: {\n                        color: this.plotConfig.trace2Color,\n                        size: 10,\n                        symbol: 'square'\n                    }        \n            \n                };\n            }\n            addTracePoints(trace1Pt, trace2Pt)\n            {\n//                var now = (new Date().getTime() - this.plotStartTime) / 1000;\n                var now = new Date().getTime();\n                var plotBeginning = now - this.plotConfig.plotLength;\n                var removeDone = false;\n                while(!removeDone)\n                {\n                    if (this.trace1.x[0] < plotBeginning)\n                    {\n                        this.trace1.x.shift();\n                        this.trace1.y.shift();\n                        this.trace2.x.shift();\n                        this.trace2.y.shift();\n                    }\n                    else\n                    {\n                        removeDone = true;\n                    }\n                }\n        \n                this.trace1.x.push(now);\n                this.trace1.y.push(trace1Pt);\n                this.trace2.x.push(now);\n                this.trace2.y.push(trace2Pt);\n                Plotly.newPlot(this.plotConfig.htmlId, [this.trace1, this.trace2], this.layout);\n            }\n        }\n",
-        "output": "str",
-        "x": 660,
-        "y": 300,
-        "wires": [
-            [
-                "2b97e6dd.6d7b5a"
-            ]
-        ]
-    },
-    {
         "id": "c98976c.3996888",
         "type": "template",
         "z": "c4285970.3276d8",
@@ -1027,51 +1008,13 @@
         "fieldType": "msg",
         "format": "javascript",
         "syntax": "mustache",
-        "template": "// Global Javascript\n        useWebSockets(true);\n        var mqttDevice = null;\n        var device = null;\n        var archiveRequestList = [];\n        var archiveList = [];\n        var pingInterval = 5000;\n        var lastPing = 0;\n\n        var restfulDevice = \n        {\n            deviceType  : '{{{payload.script.deviceType}}}',\n            name        : '{{{payload.script.name}}}',\n            project     : '{{{payload.script.project}}}'\n        };\n\n        var plotConfig = \n        {\n            trace1Title : 'Led State',\n            trace1Color : '#557a95',\n            trace1GridColor : '#beceda',\n            trace2Title : 'Loop Delay (mS)',\n            trace2Color : '#f2a31f',\n            plotLength  : 600000,\n            width   : '',\n            height  :   '500',\n            htmlId  :   'historyStripChart'\n        };\n        let historyStripChart = new StripChart(plotConfig);\n        var loopDelayChanged = false;\n        \n        function onDocumentReady()\n        {\n            setRemoteApp(false);\n            if (remoteApp)\n            {\n                getCreds();\n                setInterval(function(){getCreds();}, 1000);\n            }\n            else\n            {\n                $('#userCardId').hide();\n            }\n            $('#archiveCardId').hide();\n            $('#loopDelayButtonId').hide();\n            setInterval(function()\n            {\n                var now = new Date().getTime();\n                if ((now - lastPing) > pingInterval)\n                {\n                    lastPing = now;\n                    var actionMsg = \n                        {\n                            topic   : restfulDevice.project + '/' +  restfulDevice.deviceType + '/' +  restfulDevice.name + '/ping',\n                            payload : true\n                        };\n                    sendActionMsg('ping', 'ping', actionMsg);\n               }\n            }, 1000);\n        }\n        function onWebSocketOpen()\n        {\n            if (remoteApp) getArchive(24);\n        }\n        function onWebSocketClose()\n        {\n            \n        }\n        function onWebSocketMessage(msg)\n        {\n            switch(msg.topic)\n            {\n                case 'readings':\n                    if ((msg.mqttDevice.name == restfulDevice.name) && (msg.mqttDevice.deviceType == restfulDevice.deviceType)  && (msg.mqttDevice.project == restfulDevice.project) )\n                    {\n                        lastPing = new Date().getTime();\n                        heartbeat();\n                        device = JSON.parse(pako.inflate(msg.payload, { to: 'string' }));\n                        mqttDevice = msg.mqttDevice;\n                        updateDmaReadings();\n                    }\n                    break;\n                case 'readDatabase':\n                    if (msg.userID == userID)\n                    {\n                        if ((msg.payload.device.deviceType == restfulDevice.deviceType) && (msg.payload.device.name == restfulDevice.name) )\n                            putArchiveValues(msg.payload);\n                    }\n                    break;\n                case 'renew':\n                    if (msg.userID == userID)\n                    {\n                        updateCookie(msg);\n                    }\n                    break;\n                case 'permissionError':\n                    if (msg.userID == userID)\n                    {\n                        acknowledgeDialog('Permission', 'Error', msg.payload);\n                    }\n                    break;\n                case 'loginExpired':\n                    if (msg.userID == userID)\n                    {\n                       location.reload();\n                    }\n                    break;\n                default:\n                    break;\n            }\n        }\n        function sendSetting()\n        {\n            var actionMsg = \n                {\n                    topic   : mqttDevice.project + '/' +  mqttDevice.deviceType + '/' +  mqttDevice.name + '/setting',\n                    payload : pako.deflate(JSON.stringify(device))\n                };\n            sendActionMsg('setting','setting',actionMsg);\n       }\n        function setScalarValue(settingValue, attrName)\n        {\n            var settingAttr = device[attrName];\n            if ( (settingAttr.alarm.limits.lolo <= settingValue) && (settingValue <= settingAttr.alarm.limits.hihi) )\n            {\n                settingAttr.value = settingValue;\n                sendSetting();\n            } \n            else\n            {\n                acknowledgeDialog('Acknowledge', 'Error', 'Entry outside range! (' + settingAttr.alarm.limits.lolo.toString() + '-' + settingAttr.alarm.limits.hihi.toString() + ' ' + settingAttr.unit);\n            }\n        }\n        function reset(actionFlag)\n        {\n            var headerText = 'Warning';\n            var title = 'Resetting Tray';\n            var text = 'I hope you know what you are doing.';\n            var buttonTexts = ['Reset', 'Cancel'];\n            var buttonFunctions = \n            [\n                function()\n                {\n                    $( this ).dialog( \"close\" );\n                    setScalarValue(actionFlag, 'reset');\n                 }, \n                function()\n                {\n                    $( this ).dialog( \"close\" );\n                }\n            ];\n            if (actionFlag == 2)\n            {\n                title = 'Rebooting Tray';\n                buttonTexts[0] = 'Reboot';\n            }\n            optionDialog(headerText, title, text, buttonTexts, buttonFunctions);\n            \n        }\n        function loopDelayChange()\n        {\n            loopDelayChanged = true;\n            $('#loopDelayButtonId').show();\n        }\n        function loopDelay()\n        {\n            $('#loopDelayButtonId').hide();\n            if (isNaN($('#loopDelayInputId').val()))\n            {\n                loopDelayChanged = false;\n                return;\n            }\n            setScalarValue(Number($('#loopDelayInputId').val()), 'loopDelay');\n            loopDelayChanged = false;\n        }\n",
+        "template": "// Global Javascript\n        useWebSockets(true);\n        var mqttDevice = null;\n        var device = null;\n        var pingInterval = 5000;\n        var lastPing = 0;\n\n        var restfulDevice = \n        {\n            deviceType  : '{{{payload.script.deviceType}}}',\n            name        : '{{{payload.script.name}}}',\n            project     : '{{{payload.script.project}}}'\n        };\n\n        function onDocumentReady()\n        {\n            setRemoteApp(false);\n            if (remoteApp)\n            {\n                getCreds();\n                setInterval(function(){getCreds();}, 1000);\n            }\n            else\n            {\n                $('#userCardId').hide();\n            }\n            setInterval(function()\n            {\n                var now = new Date().getTime();\n                if ((now - lastPing) > pingInterval)\n                {\n                    lastPing = now;\n                    var actionMsg = \n                        {\n                            topic   : restfulDevice.project + '/' +  restfulDevice.deviceType + '/' +  restfulDevice.name + '/ping',\n                            payload : true\n                        };\n                    sendActionMsg('ping', 'ping', actionMsg);\n               }\n            }, 1000);\n        }\n        function onWebSocketOpen()\n        {\n            if (remoteApp) getArchive(24);\n        }\n        function onWebSocketClose()\n        {\n            \n        }\n        function onWebSocketMessage(msg)\n        {\n            switch(msg.topic)\n            {\n                case 'readings':\n                    if ((msg.mqttDevice.name == restfulDevice.name) && (msg.mqttDevice.deviceType == restfulDevice.deviceType)  && (msg.mqttDevice.project == restfulDevice.project) )\n                    {\n                        lastPing = new Date().getTime();\n                        heartbeat();\n                        device = JSON.parse(pako.inflate(msg.payload, { to: 'string' }));\n                        mqttDevice = msg.mqttDevice;\n                        updateDmaReadings();\n                    }\n                    break;\n                case 'readDatabase':\n                    if (msg.userID == userID)\n                    {\n                    }\n                    break;\n                case 'renew':\n                    if (msg.userID == userID)\n                    {\n                        updateCookie(msg);\n                    }\n                    break;\n                case 'permissionError':\n                    if (msg.userID == userID)\n                    {\n                        acknowledgeDialog('Permission', 'Error', msg.payload);\n                    }\n                    break;\n                case 'loginExpired':\n                    if (msg.userID == userID)\n                    {\n                       location.reload();\n                    }\n                    break;\n                default:\n                    break;\n            }\n        }\n        function sendSetting()\n        {\n            var actionMsg = \n                {\n                    topic   : mqttDevice.project + '/' +  mqttDevice.deviceType + '/' +  mqttDevice.name + '/setting',\n                    payload : pako.deflate(JSON.stringify(device))\n                };\n            sendActionMsg('setting','setting',actionMsg);\n        }\n        function setScalarValue(settingValue, attrName)\n        {\n            var settingAttr = device[attrName];\n            if ( (settingAttr.alarm.limits.lolo <= settingValue) && (settingValue <= settingAttr.alarm.limits.hihi) )\n            {\n                settingAttr.value = settingValue;\n                sendSetting();\n            } \n            else\n            {\n                acknowledgeDialog('Acknowledge', 'Error', 'Entry outside range! (' + settingAttr.alarm.limits.lolo.toString() + '-' + settingAttr.alarm.limits.hihi.toString() + ' ' + settingAttr.unit);\n            }\n        }\n        function reset(actionFlag)\n        {\n            var headerText = 'Warning';\n            var title = 'Resetting Tray';\n            var text = 'I hope you know what you are doing.';\n            var buttonTexts = ['Reset', 'Cancel'];\n            var buttonFunctions = \n            [\n                function()\n                {\n                    $( this ).dialog( \"close\" );\n                    setScalarValue(actionFlag, 'reset');\n                 }, \n                function()\n                {\n                    $( this ).dialog( \"close\" );\n                }\n            ];\n            if (actionFlag == 2)\n            {\n                title = 'Rebooting Tray';\n                buttonTexts[0] = 'Reboot';\n            }\n            optionDialog(headerText, title, text, buttonTexts, buttonFunctions);\n            \n        }\n        function updateDmaReadings()\n        {\n            $('#linkQualityId').text(device.linkQuality.value);\n            $('#signalLevelId').text(device.signalLevel.value);\n            updateDipoleReadings();\n            updateQuadReadings();\n        }\n",
         "output": "str",
         "x": 630,
         "y": 260,
         "wires": [
             [
-                "4943dafd.596124"
-            ]
-        ]
-    },
-    {
-        "id": "2b97e6dd.6d7b5a",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "script.updateReadings",
-        "field": "payload.script.updateReadings",
-        "fieldType": "msg",
-        "format": "javascript",
-        "syntax": "mustache",
-        "template": "// Update Readings Javascript\n        function updateDmaReadings()\n        {\n            $('#linkQualityId').text(device.linkQuality.value);\n            $('#signalLevelId').text(device.signalLevel.value);\n            historyStripChart.addTracePoints(device.ledState.value, device.loopDelay.value);\n            if (!loopDelayChanged)$('#loopDelayInputId').val(device.loopDelay.value);\n\n            if(device.ledState.value > 0)\n            {\n                $(\"#ledStateId\").attr(\"src\",\"/img/redLight.png\");\n            }\n            else\n            {\n                $(\"#ledStateId\").attr(\"src\",\"/img/yellowLight.png\");\n            }\n\n            var buttonColor = '#ff0000';\n            var buttonTextColor = '#000000';\n            var buttonText = \"Off\";\n            if (device.ledToggle.value > 0) \n            {\n                buttonColor = '#00ff00';\n                buttonText = 'On';\n            }\n            $('#ledToggleButtonId').css('color', buttonTextColor); \n            $('#ledToggleButtonId').css('background-color', buttonColor); \n            $('#ledToggleButtonId').text(buttonText); \n            \n            buttonColor = '#ff0000';\n            buttonTextColor = '#000000';\n            buttonText = \"Off\";\n            if (device.ledOn.value > 0) \n            {\n                buttonColor = '#00ff00';\n                buttonText = 'On';\n            }\n            $('#ledOnButtonId').css('color', buttonTextColor); \n            $('#ledOnButtonId').css('background-color', buttonColor); \n            $('#ledOnButtonId').text(buttonText); \n            if (device.ledToggle.value > 0) \n            {\n//                $('#ledOnButtonId').prop('disabled', true);\n                $('#ledOnButtonId').hide();\n            }\n            else\n            {\n//                $('#ledOnButtonId').prop('disabled', false);\n                $('#ledOnButtonId').show();\n            }\n        }\n",
-        "output": "str",
-        "x": 660,
-        "y": 340,
-        "wires": [
-            [
-                "e9fc5e9d.d698"
-            ]
-        ]
-    },
-    {
-        "id": "1ee8ce74.b06fc2",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "script.editDevice",
-        "field": "payload.script.editDevice",
-        "fieldType": "msg",
-        "format": "javascript",
-        "syntax": "mustache",
-        "template": "// Edit Temp JavaScript\n       $( function() \n        {\n            $( \"#editDeviceDialog\" ).dialog(\n                {\n//                    closeOnEscape: false,\n//                    open: function(event, ui) {$(\".ui-dialog-titlebar-close\", ui.dialog | ui).hide();},\n                    width:    640,\n                    autoOpen: false,\n                    buttons:\n                    [\n                        {\n                            text: \"Set\",\n                            click: function() {setDevice(); $( this ).dialog( \"close\" );},\n                            showText: false\n                        },\n                        {\n                            text: \"Cancel\",\n                            click: function() \n                            {\n                                $( this ).dialog( \"close\" ); \n                            },\n                            showText: false\n                        }\n                    ]\n                });\n        } );\n        function editDevice(attrName)\n        {\n            $( \"#editDeviceDialog\" ).dialog( \"option\", \"title\", \"Edit\"); \n            editedAttribute = attrName;\n            $( \"#editDeviceDialogAttribute\").html(attrName);\n\n            var attr = device[attrName];\n            $( \"#loloAlarm\").val(attr.alarm.limits.lolo);\n            $( \"#lowAlarm\").val(attr.alarm.limits.low);\n            $( \"#highAlarm\").val(attr.alarm.limits.high);\n            $( \"#hihiAlarm\").val(attr.alarm.limits.hihi);\n            $( \"#notifyName\").val(attr.alarm.notify.name);\n            $( \"#notifyNumber\").val(attr.alarm.notify.number);\n\n            $( \"#editDeviceDialog\" ).dialog( \"open\" );\n        }\n        function setDevice()\n        {\n            var attr = device[editedAttribute];\n            if (isNaN($('#loloAlarm').val()) \n                || isNaN($('#lowAlarm').val()) \n                || isNaN($('#highAlarm').val()) \n                || isNaN($('#hihiAlarm').val()))\n            {\n                acknowledgeDialog('Error', 'Entry not a number!', editedAttribute);\n                editedAttribute = '';\n                return;\n            }\n            editedAttribute = '';\n\n            attr.alarm.limits.lolo = Number($( \"#loloAlarm\").val());\n            attr.alarm.limits.low = Number($( \"#lowAlarm\").val());\n            attr.alarm.limits.high = Number($( \"#highAlarm\").val());\n            attr.alarm.limits.hihi = Number($( \"#hihiAlarm\").val());\n            attr.alarm.notify.number =  $( \"#notifyNumber\").val();\n            attr.alarm.notify.name = $( \"#notifyName\").val();\n            sendSetting();\n        }\n",
-        "output": "str",
-        "x": 640,
-        "y": 460,
-        "wires": [
-            [
-                "2f9f8abf.a80656"
+                "3c7d21bd.ff843e"
             ]
         ]
     },
@@ -1084,13 +1027,13 @@
         "fieldType": "msg",
         "format": "javascript",
         "syntax": "mustache",
-        "template": "{{{payload.script.stripChartWidget}}}\n{{{payload.script.global}}}\n{{{payload.script.updateReadings}}}\n{{{payload.script.toggleButtons}}}\n{{{payload.script.archive}}}\n{{{payload.script.editDevice}}}\n{{{payload.script.user}}}\n",
+        "template": "{{{payload.script.global}}}\n{{{payload.script.updateReadings}}}\n{{{payload.script.dipole}}}\n{{{payload.script.quad}}}\n{{{payload.script.user}}}\n",
         "output": "str",
         "x": 620,
-        "y": 540,
+        "y": 420,
         "wires": [
             [
-                "7a83f84a.d12268"
+                "2cbd92d3.517afe"
             ]
         ]
     },
@@ -1103,10 +1046,10 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "    <div width=\"100%\">\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12' align='center'>\n{{{payload.html.dashboard}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12' align='center'>\n{{{payload.html.history}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12' align='center'>\n{{{payload.html.archive}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12'>\n{{{payload.html.user}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12'>\n{{{payload.html.wifimon}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12'>\n{{{payload.html.reset}}}\n            </div>\n        </div>\n    </div>",
+        "template": "    <div width=\"100%\">\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12' align='center'>\n{{{payload.html.dipole}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12' align='center'>\n{{{payload.html.quad}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12'>\n{{{payload.html.user}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12'>\n{{{payload.html.wifimon}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12'>\n{{{payload.html.reset}}}\n            </div>\n        </div>\n    </div>",
         "output": "str",
         "x": 930,
-        "y": 500,
+        "y": 460,
         "wires": [
             [
                 "2e95339f.b9da0c"
@@ -1125,105 +1068,10 @@
         "template": "<!-- Dashboard HTML -->\n                <div class='card'>\n                    <p class='card-title'>WiFi Connection</p>\n                    <div class='card-body' align=\"center\">\n                        <div class='row'  style='padding-top: 0px;'>\n                            <table width='100%'>\n                                <tr>\n                                    <td width='60%' >\n                                        <span class='card-text' >Device Update</span>\n                                    </td>\n                                    <td width='20%' align='center'></td>\n                                    <td width='20%' align='center'>\n                                        <img src='/img/heartRed.png' id='heartBeatID' width='100px' height='100px'/>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='60%' >\n                                        <span class='card-text' >Signal Level (dBm)</span>\n                                    </td>\n                                    <td width='20%' align='center'></td>\n                                    <td width='20%' align='center'>\n                                        <span class='card-text' id='signalLevelId' >-100</span>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='60%' >\n                                        <span class='card-text' >Link Quality (/70)</span>\n                                    </td>\n                                    <td width='20%' align='center'></td>\n                                    <td width='20%' align='center'>\n                                        <span class='card-text' id='linkQualityId' >-1</span>\n                                    </td>\n                                </tr>\n                            </table>\n                        </div>\n                    </div>\n                </div>\n",
         "output": "str",
         "x": 950,
-        "y": 420,
-        "wires": [
-            [
-                "c273ba2f.eae8a8"
-            ]
-        ]
-    },
-    {
-        "id": "1c00a3e0.d2260c",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "html.archive",
-        "field": "payload.html.archive",
-        "fieldType": "msg",
-        "format": "html",
-        "syntax": "mustache",
-        "template": "<!-- Archive HTML -->\n                <div class='card' id=archiveCardId>\n                    <p class='card-title'>Archive</p>\n                    <div class='card-body' align=\"center\">\n                        <div class='row' >\n                            <table width='100%'>\n                                <tr>\n                                    <td width='10%' align='center'>\n                                        <button class='btn btn-block big-text' style='background-color:var(--color1);color:var(--color5)' id=\"archive2hrButton\" onclick=\"getArchive(2)\" >2</button>\n                                    </td>\n                                    <td width='10%'  align='center'>\n                                        <button class='btn btn-block big-text' style='background-color:var(--color1);color:var(--color5)' id=\"archive4hrButton\" onclick=\"getArchive(4)\" >4</button>\n                                    </td>\n                                    <td width='10%'  align='center'>\n                                        <button class='btn btn-block big-text' style='background-color:var(--color1);color:var(--color5)' id=\"archive8hrButton\" onclick=\"getArchive(8)\" >8</button>\n                                    </td>\n                                    <td width='10%'  align='center'>\n                                        <button class='btn btn-block big-text' style='background-color:var(--color1);color:var(--color5)' id=\"archive24hrButton\" onclick=\"getArchive(24)\" >24</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <button class='btn btn-block big-text' style='background-color:var(--color1);color:var(--color5)' id=\"archive72hrButton\" onclick=\"getArchive(72)\" >72</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <button class='btn btn-block big-text' style='background-color:var(--color1);color:var(--color5)' id=\"archive168hrButton\" onclick=\"getArchive(168)\" >168</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='big-text' >Hours</span>\n                                    </td>\n                                </tr>\n                            </table>\n                        </div>\n                        <div class='row vert-pad'>\n                            <div class='col-md-12'>\n                                <div id=\"archiveChart\" width=\"100%\" ></div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n",
-        "output": "str",
-        "x": 950,
-        "y": 340,
-        "wires": [
-            [
-                "28cd98f1.2a1518"
-            ]
-        ]
-    },
-    {
-        "id": "6f88c98b.7a65c8",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "html.history",
-        "field": "payload.html.history",
-        "fieldType": "msg",
-        "format": "html",
-        "syntax": "mustache",
-        "template": "<!-- History HTML -->\n                <div class='card'>\n                    <p class='card-title'>History</p>\n                    <div class='card-body' align=\"center\">\n                        <div id=\"historyStripChart\" width=\"100%\" ></div>\n                    </div>\n                </div>\n",
-        "output": "str",
-        "x": 950,
-        "y": 300,
-        "wires": [
-            [
-                "1c00a3e0.d2260c"
-            ]
-        ]
-    },
-    {
-        "id": "7fef0c19.4ed014",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "html.dashboard",
-        "field": "payload.html.dashboard",
-        "fieldType": "msg",
-        "format": "html",
-        "syntax": "mustache",
-        "template": "<!-- Dashboard HTML -->\n                <div class='card'>\n                    <p class='card-title'>Dashboard</p>\n                    <div class='card-body' align=\"center\">\n                        <div class='row' style='padding-bottom: 25px;'>\n                            <table width='100%'>\n                                <tr>\n                                    <td width='60%' >\n                                        <span class='card-text' >Led State</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <img src='/img/yellowLight.png' height='70px' id='ledStateId' />\n                                    </td>\n                                    <td width='20%'>\n                                        <button class='btn btn-block card-button big-text' onclick=\"editDevice('ledState')\" >Edit</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='60%' >\n                                        <span class='card-text' >Set Led Toggle</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <button class='btn btn-block big-text' style='background-color:grey;color:black' id='ledToggleButtonId' onclick=\"ledToggle()\" >?</button>\n                                    </td>\n                                    <td width='20%'>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='60%' >\n                                        <span class='card-text' >Set Led On/Off</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <button class='btn btn-block big-text' style='background-color:grey;color:black' id='ledOnButtonId' onclick=\"ledOn()\" >?</button>\n                                    </td>\n                                    <td width='20%'>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='60%'>\n                                        <span class='card-text' >Loop Delay (mS)</span>\n                                    </td>\n                                    <td width='20%'>\n                                        <input id=\"loopDelayInputId\" type=\"text\" value=\"0\" class=\"big-text\"  size=\"8\" oninput=\"loopDelayChange()\"/>\n                                    </td>\n                                    <td width='20%'>\n                                        <button class='btn btn-block card-button big-text' id=\"loopDelayButtonId\" onclick=\"loopDelay()\" >&#10003;</button>\n                                    </td>\n                                </tr>\n                            </table>\n                        </div>\n                   </div>\n                </div>\n                <div id=\"editDeviceDialog\" title=\"Edit Device\" class='card'>\n                    <p class='card-title' id='editDeviceDialogAttribute'>Attribute</p>\n                    <div class='card-body'>\n                        <table>\n                            <tr>\n                                <td width=\"70%\" align=\"left\">  <span class=\"tableHeading tableText\">LoLo</span></td>\n                                <td width=\"30%\" align=\"right\"><input class=\"form-control tableText\" id=\"loloAlarm\" type=\"text\" value=\"0\" /></td>\n                            </tr>\n                            <tr>\n                                <td width=\"70%\" align=\"left\">  <span class=\"tableHeading tableText\">LOW</span></td>\n                                <td width=\"30%\" align=\"right\"><input class=\"form-control tableText\" id=\"lowAlarm\" type=\"text\" value=\"0\" /></td>\n                            </tr>\n                            <tr>\n                                <td width=\"70%\" align=\"left\">  <span class=\"tableHeading tableText\">HIGH</span></td>\n                                <td width=\"30%\" align=\"right\"><input class=\"form-control tableText\" id=\"highAlarm\" type=\"text\" value=\"0\" /></td>\n                            </tr>\n                            <tr>\n                                <td width=\"70%\" align=\"left\">  <span class=\"tableHeading tableText\">HiHi</span></td>\n                                <td width=\"30%\" align=\"right\"><input class=\"form-control tableText\" id=\"hihiAlarm\" type=\"text\" value=\"0\" /></td>\n                            </tr>\n                            <tr>\n                                <td width=\"70%\" align=\"left\">  <span class=\"tableHeading tableText\">Notify Name</span></td>\n                                <td width=\"30%\" align=\"right\"><input class=\"form-control tableText\" id=\"notifyName\" type=\"text\" value=\"\" /></td>\n                            </tr>\n                            <tr>\n                                <td width=\"70%\" align=\"left\">  <span class=\"tableHeading tableText\">Notify Number</span></td>\n                                <td width=\"30%\" align=\"right\"><input class=\"form-control tableText\" id=\"notifyNumber\" type=\"text\" value=\"\" /></td>\n                            </tr>\n                        </table>\n                    </div>\n                </div>",
-        "output": "str",
-        "x": 960,
-        "y": 260,
-        "wires": [
-            [
-                "6f88c98b.7a65c8"
-            ]
-        ]
-    },
-    {
-        "id": "a4466b68.9f0738",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "script.archive",
-        "field": "payload.script.archive",
-        "fieldType": "msg",
-        "format": "javascript",
-        "syntax": "mustache",
-        "template": "// Archive JavaScript\n        function getArchive(hours)\n        { \n            $('#archiveCardId').show();\n\n//            if (hours > 2) messageDialog('Info', 'Wait', 'Getting Archive Data');\n            $('#archive2hrButton').attr(\"disabled\", true); \n            $('#archive4hrButton').attr(\"disabled\", true); \n            $('#archive8hrButton').attr(\"disabled\", true); \n            $('#archive24hrButton').attr(\"disabled\", true); \n            $('#archive72hrButton').attr(\"disabled\", true); \n            $('#archive168hrButton').attr(\"disabled\", true); \n            $('#archive2hrButton').css('color', 'var(--color5)'); \n            $('#archive2hrButton').css('background-color', 'var(--color1)'); \n            $('#archive4hrButton').css('color', 'var(--color5)'); \n            $('#archive4hrButton').css('background-color', 'var(--color1)'); \n            $('#archive8hrButton').css('color', 'var(--color5)'); \n            $('#archive8hrButton').css('background-color', 'var(--color1)'); \n            $('#archive24hrButton').css('color', 'var(--color5)'); \n            $('#archive24hrButton').css('background-color', 'var(--color1)'); \n            $('#archive72hrButton').css('color', 'var(--color5)'); \n            $('#archive72hrButton').css('background-color', 'var(--color1)'); \n            $('#archive168hrButton').css('color', 'var(--color5)'); \n            $('#archive168hrButton').css('background-color', 'var(--color1)'); \n            switch(hours)\n            {\n                case 2:\n                    $('#archive2hrButton').css('color', 'var(--color1)'); \n                    $('#archive2hrButton').css('background-color', 'var(--color5)'); \n                    break;\n                case 4:\n                    $('#archive4hrButton').css('color', 'var(--color1)'); \n                    $('#archive4hrButton').css('background-color', 'var(--color5)'); \n                    break;\n                case 8:\n                    $('#archive8hrButton').css('color', 'var(--color1)'); \n                    $('#archive8hrButton').css('background-color', 'var(--color5)'); \n                    break;\n                case 24:\n                    $('#archive24hrButton').css('color', 'var(--color1)'); \n                    $('#archive24hrButton').css('background-color', 'var(--color5)'); \n                    break;\n                case 72:\n                    $('#archive72hrButton').css('color', 'var(--color1)'); \n                    $('#archive72hrButton').css('background-color', 'var(--color5)'); \n                    break;\n                case 168:\n                    $('#archive168hrButton').css('color', 'var(--color1)'); \n                    $('#archive168hrButton').css('background-color', 'var(--color5)'); \n                    break;\n                default:\n                // code block\n            }\n\n            archiveRequestList = [];\n            archiveList = [];\n            var stopDate = new Date().getTime();\n            var startDate = stopDate - hours * 3600000;\n            archiveRequestList[0] = \n            {\n                deviceType : restfulDevice.deviceType,\n                name : restfulDevice.name, \n                attr : ['ledState','loopDelay'],\n                startDate: startDate, \n                stopDate: stopDate,\n            };\n            getArchiveValues();\n        }\n        function getArchiveValues()\n        {\n            var actionMsg = \n                {\n                    device      : archiveRequestList[0]\n                };\n            sendActionMsg('readDatabase','readDatabase', actionMsg);\n            archiveRequestList.shift();\n            return;\n        }\n        function putArchiveValues(data)\n        {\n            archiveList.push(data);\n            if (archiveRequestList.length > 0)\n            {\n                getArchiveValues();\n            }\n            else\n            {\n                plotArchive();\n            }\n        }\n\n        function plotArchive()\n        {\n//            $( \"#messageDialog\" ).dialog( \"close\" );\n            var layout =\n            {\n                showlegend  : true,\n                legend      : { x: 0, y: 1.15},\n                height      : '500',\n                width       : '',\n                xaxis       :\n                {\n//                    title: 'Hours since ' + new Date(archiveList[0].device.stopDate).toLocaleString(),\n                    type: 'date'\n                },\n                yaxis:\n                {\n                    title           : plotConfig.trace1Title,\n                    titlefont       : {color: plotConfig.trace1Color},\n                    tickfont        : {color:plotConfig.trace1Color},\n                    gridcolor       : plotConfig.trace1GridColor,\n                    zerolinecolor   : plotConfig.trace1GridColor,\n                    linecolor       : plotConfig.trace1GridColor\n\n                },\n                yaxis2:\n                {\n                    title           : plotConfig.trace2Title,\n                    titlefont       : {color: plotConfig.trace2Color},\n                    tickfont        : {color:plotConfig.trace2Color},\n                    gridcolor       : plotConfig.trace2GridColor,\n                    zerolinecolor   : plotConfig.trace2GridColor,\n                    linecolor       : plotConfig.trace2GridColor,\n                    overlaying: 'y',\n                    side: 'right'\n                },\n                margin: \n                    {\n                        t: 30, //top margin\n    //                    l: 0, //left margin\n    //                    r: 0, //right margin\n    //                    b: 20 //bottom margin\n                    },\n            };\n            this.trace1 = \n            {\n                x: [],\n                y: [],\n                name: plotConfig.trace1Title,\n                yaxis: 'y1',\n                type: 'scatter',\n                mode: 'markers',\n                marker: {\n                    color: this.plotConfig.trace1Color,\n                    size: 10,\n                    symbol: 'circle'\n                }        \n    \n            };\n            this.trace2 = \n            {\n                x: [],\n                y: [],\n                name: plotConfig.trace2Title,\n                yaxis: 'y2',\n                type: 'scatter',\n                mode: 'markers',\n                marker: {\n                    color: this.plotConfig.trace2Color,\n                    size: 10,\n                    symbol: 'square'\n                }        \n         \n            };\n            for (var ii = 0; ii < archiveList[0].trace.length; ++ii)\n            {\n//                var x = (archiveList[0].trace[ii].timeStamp - archiveList[0].device.stopDate) / 3600000.0;\n                var x = archiveList[0].trace[ii].timeStamp;\n                trace1.x[ii] = x;\n                trace1.y[ii] = archiveList[0].trace[ii][archiveList[0].device.attr[0]] ;\n                trace2.x[ii] = x;\n                trace2.y[ii] = archiveList[0].trace[ii][archiveList[0].device.attr[1]];\n            }\n\n\n            Plotly.newPlot('archiveChart', [trace1,trace2], layout);\n            $('#archive2hrButton').attr(\"disabled\", false); \n            $('#archive4hrButton').attr(\"disabled\", false); \n            $('#archive8hrButton').attr(\"disabled\", false); \n            $('#archive24hrButton').attr(\"disabled\", false); \n            $('#archive72hrButton').attr(\"disabled\", false); \n            $('#archive168hrButton').attr(\"disabled\", false); \n        }\n",
-        "output": "str",
-        "x": 630,
-        "y": 420,
-        "wires": [
-            [
-                "1ee8ce74.b06fc2"
-            ]
-        ]
-    },
-    {
-        "id": "e9fc5e9d.d698",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "script.toggleButtons",
-        "field": "payload.script.toggleButtons",
-        "fieldType": "msg",
-        "format": "javascript",
-        "syntax": "mustache",
-        "template": "        function ledToggle()\n        {\n            if (device.ledToggle.value > 0)\n            {\n                device.ledToggle.value = 0;\n            }\n            else\n            {\n                device.ledToggle.value = 1;\n                \n            }\n            $('#ledToggleButtonId').css('color', 'black'); \n            $('#ledToggleButtonId').css('background-color', 'grey'); \n            $('#ledToggleButtonId').text('?'); \n            sendSetting();\n        }\n        function ledOn()\n        {\n            if (device.ledOn.value > 0)\n            {\n                device.ledOn.value = 0;\n            }\n            else\n            {\n                device.ledOn.value = 1;\n                \n            }\n            $('#ledOnButtonId').css('color', 'black'); \n            $('#ledOnButtonId').css('background-color', 'grey'); \n            $('#ledOnButtonId').text('?'); \n            sendSetting();\n        }\n",
-        "output": "str",
-        "x": 650,
         "y": 380,
         "wires": [
             [
-                "a4466b68.9f0738"
+                "c273ba2f.eae8a8"
             ]
         ]
     },
@@ -1258,7 +1106,7 @@
         "template": "                <div class='card' id='userCardId'>\n                    <div class='card-body' align=\"center\">\n                        <table width=\"100%\">\n                            <tr>\n                                <td  align=\"left\">\n                                     <span class='card-text' style='color:black;'>User:</span>\n                                </td>\n                                <td  align=\"right\">\n                                     <span class='card-text' id='usernameId'></span>\n                                </td>\n                            </tr>\n                            <tr>\n                                <td  align=\"left\">\n                                    <span class='card-text' style='color:black;'>Time left:</span>\n                                </td>\n                                <td  align=\"right\">\n                                     <span class='card-text' id='expTimeId'></span>\n                                </td>\n                            </tr>\n                        </table>\n                        <table width=\"100%\">\n                            <tr>\n                                <td width=\"40%\">\n                                    <button class='btn btn-block card-button big-text' id='logoutButton' onclick=\"renew()\" >Renew</button>\n                                </td>\n                                <td width=\"10%\"></td>\n                                <td width=\"40%\">\n                                    <button class='btn btn-block card-button big-text' id='logoutButton' onclick=\"logout()\" >Logout</button>\n                                </td>\n                            </tr>\n                        </table>\n                    </div>\n                </div>\n",
         "output": "str",
         "x": 940,
-        "y": 380,
+        "y": 340,
         "wires": [
             [
                 "b6fcc866.328488"
@@ -1277,7 +1125,7 @@
         "template": "        function getCreds()\n        {\n            var now = new Date().getTime();\n            var expDate = Number(getCookie('ExpDate'));\n            if (expDate > 0)\n            {\n                expDate = expDate - now;\n                if(expDate < 0)\n                {\n                    logout();\n                }\n                else\n                {\n                    var hours = Math.floor(expDate / 3600000);\n                    var minutes = expDate - hours * 3600000;\n                    minutes = Math.floor(minutes / 60000);\n                    var seconds = expDate - (hours * 3600000) - (minutes * 60000);\n                    seconds = Math.floor(seconds / 1000);\n                    hours = hours.toString();\n                    if (hours.length == 1) hours = '0' + hours; \n                    minutes = minutes.toString();\n                    if (minutes.length == 1) minutes = '0' + minutes; \n                    seconds = seconds.toString();\n                    if (seconds.length == 1) seconds = '0' + seconds; \n                    var timeString = hours + ':' + minutes + ':' + seconds;\n                    $('#usernameId').text(getCookie('Username'));\n                    $('#expTimeId').text(timeString);\n                }\n            }\n            else\n            {\n                $('#usernameId').text(getCookie('Username'));\n                $('#expTimeId').text('Forever');\n            }\n        }\n        function logout()\n        {\n            document.cookie = project + \"Role= ; expires = Thu, 01 Jan 1970 00:00:00 GMT\";\n            document.cookie = project + \"ExpDate= ; expires = Thu, 01 Jan 1970 00:00:00 GMT\";\n            document.cookie = project + \"Username= ; expires = Thu, 01 Jan 1970 00:00:00 GMT\";\n            window.location.href = \"/\";\n        }\n        function renew()\n        {\n            var actionMsg = {};\n            sendActionMsg('renew', 'renew', actionMsg);\n        }\n        function updateCookie(msg)\n        {\n            document.cookie = project + \"Role=\" + msg.role;\n            document.cookie = project + \"ExpDate=\" + msg.expDate;\n            document.cookie = project + \"Username=\" + msg.username;\n        }\n        function downloadToken()\n        {\n            downloadString(getCookie(\"Role\"), \"text/plain\", project + \"-token.txt\");\n        }\n// from https://gist.github.com/danallison/3ec9d5314788b337b682\n        function downloadString(text, fileType, fileName) \n        {\n            var blob = new Blob([text], { type: fileType });\n            \n            var a = document.createElement('a');\n            a.download = fileName;\n            a.href = URL.createObjectURL(blob);\n            a.dataset.downloadurl = [fileType, a.download, a.href].join(':');\n            a.style.display = \"none\";\n            document.body.appendChild(a);\n            a.click();\n            document.body.removeChild(a);\n            setTimeout(function() { URL.revokeObjectURL(a.href); }, 1500);\n        }",
         "output": "str",
         "x": 630,
-        "y": 500,
+        "y": 380,
         "wires": [
             [
                 "c1034be9.37f0a8"
@@ -2047,65 +1895,7 @@
         "z": "c4285970.3276d8",
         "name": "",
         "x": 1150,
-        "y": 500,
-        "wires": []
-    },
-    {
-        "id": "7a83f84a.d12268",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "extraScripts",
-        "field": "payload.extraScripts",
-        "fieldType": "msg",
-        "format": "html",
-        "syntax": "mustache",
-        "template": "",
-        "output": "str",
-        "x": 630,
-        "y": 580,
-        "wires": [
-            [
-                "9c04948e.356768"
-            ]
-        ]
-    },
-    {
-        "id": "9c04948e.356768",
-        "type": "template",
-        "z": "c4285970.3276d8",
-        "name": "extraCss",
-        "field": "payload.extraCss",
-        "fieldType": "msg",
-        "format": "css",
-        "syntax": "mustache",
-        "template": "",
-        "output": "str",
-        "x": 620,
-        "y": 620,
-        "wires": [
-            [
-                "7fef0c19.4ed014"
-            ]
-        ]
-    },
-    {
-        "id": "be82d379.fd146",
-        "type": "comment",
-        "z": "c4285970.3276d8",
-        "name": "Example extraScripts",
-        "info": "    <script src=\"/scripts/visDist/vis.js\"></script>\n",
-        "x": 900,
-        "y": 580,
-        "wires": []
-    },
-    {
-        "id": "4edfe160.96fb8",
-        "type": "comment",
-        "z": "c4285970.3276d8",
-        "name": "Example extraCss",
-        "info": "        .card\n        {\n          background-color: var(--color2) !important;\n          text-align: center;\n        }\n",
-        "x": 890,
-        "y": 620,
+        "y": 460,
         "wires": []
     },
     {
@@ -2214,7 +2004,7 @@
         "template": "                <div class='card' id='reset'>\n                    <div class='card-body' align=\"center\">\n                         <table width=\"100%\">\n                            <tr>\n                                <td width=\"40%\">\n                                    <button class='btn btn-block card-button big-text' onclick=\"reset(1)\" >Reset</button>\n                                </td>\n                                <td width=\"10%\"></td>\n                                <td width=\"40%\">\n                                    <button class='btn btn-block card-button big-text' onclick=\"reset(2)\" >Reboot</button>\n                                </td>\n                            </tr>\n                        </table>\n                    </div>\n                </div>\n",
         "output": "str",
         "x": 940,
-        "y": 460,
+        "y": 420,
         "wires": [
             [
                 "450b0136.7ccbd"
@@ -2287,7 +2077,7 @@
         "type": "function",
         "z": "5f562f66.a301e",
         "name": "parse Settings",
-        "func": "var device = flow.get('device');\n\nvar teensyName = [\n    'chanOn0',\n    'timeOffset0',\n    'sign0',\n    'maxAcValue0',\n    'gain0',\n    'dacOffset0',\n    'chanOn1',\n    'timeOffset1',\n    'sign1',\n    'maxAcValue1',\n    'gain1',\n    'dacOffset1',\n    ];\nvar attrName = [\n    'onDipole',\n    'filterDipole',\n    'signDipole',\n    'maxAcDipole',\n    'gainDipole',\n    'offsetDipole',\n    'onQuad',\n    'filterQuad',\n    'signQuad',\n    'maxAcQuad',\n    'gainQuad',\n    'offsetQuad',\n    ]\nvar oldDevice = flow.get('oldDevice');\nvar payload = [];\nfor (var ii = 0; ii < 12; ++ii) payload[ii] = null;\nif (oldDevice == undefined)\n{\n    for (var ii = 0; ii < 12; ++ii)\n    {\n        payload[ii] = {topic:teensyName[ii], payload : device[ attrName[ii] ].value};\n    }\n}\nelse\n{\n    var icount = 0;\n    if (device[ attrName[ii] ].value != oldDevice[ attrName[ii] ].value)\n    {\n        payload[icount] = {topic:teensyName[ii], payload : device[ attrName[ii] ].value};\n        ++icount;\n    }\n}\nflow.set('oldDevice', JSON.parse(JSON.stringify(device)));    \n\nreturn payload;\n",
+        "func": "var device = flow.get('device');\n\nvar teensyName = [\n    'chanOn0',\n    'timeOffset0',\n    'sign0',\n    'maxAcValue0',\n    'gain0',\n    'dacOffset0',\n    'chanOn1',\n    'timeOffset1',\n    'sign1',\n    'maxAcValue1',\n    'gain1',\n    'dacOffset1',\n    ];\nvar attrName = [\n    'onDipole',\n    'filterDipole',\n    'signDipole',\n    'maxAcDipole',\n    'gainDipole',\n    'offsetDipole',\n    'onQuad',\n    'filterQuad',\n    'signQuad',\n    'maxAcQuad',\n    'gainQuad',\n    'offsetQuad',\n    ]\nvar oldDevice = flow.get('oldDevice');\nvar payload = [];\nfor (var ii = 0; ii < 12; ++ii) payload[ii] = null;\nif (flow.get('initDevice'))\n{\n    for (var ii = 0; ii < 12; ++ii)\n    {\n        payload[ii] = {topic:teensyName[ii], payload : device[ attrName[ii] ].value};\n    };\n    flow.set('initDevice', false);\n}\nelse\n{\n    var icount = 0;\n    for (var ii = 0; ii < 12; ++ii)\n    {\n        if (device[ attrName[ii] ].value != oldDevice[ attrName[ii] ].value)\n        {\n            payload[icount] = {topic:teensyName[ii], payload : device[ attrName[ii] ].value};\n            ++icount;\n        }\n    }\n}\nflow.set('oldDevice', JSON.parse(JSON.stringify(device)));    \n\nreturn payload;\n",
         "outputs": 12,
         "noerr": 0,
         "initialize": "",
@@ -2624,7 +2414,8 @@
         "y": 580,
         "wires": [
             [
-                "a4ad3242.87f7a"
+                "a4ad3242.87f7a",
+                "a8fab79c.a492d8"
             ]
         ]
     },
@@ -2681,5 +2472,209 @@
         "x": 890,
         "y": 520,
         "wires": []
+    },
+    {
+        "id": "2cbd92d3.517afe",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "html.dipole",
+        "field": "payload.html.dipole",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!-- Dipole HTML -->\n                <div class='card'>\n                    <p class='card-title'>Dipole</p>\n                    <div class='card-body' align=\"center\">\n                        <div class='row' style='padding-bottom: 25px;'>\n                            <table width='100%'>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>On (0 - 1)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"chanOn0(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='chanOn0'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"chanOn0(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Sign (-1 - +1)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"sign0(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='sign0'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"sign0(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Gain (-4 - +4)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"gain0(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='gain0'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"gain0(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Filter Tap (1 - 20)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"timeOffset0(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='timeOffset0'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"timeOffset0(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                           </table>\n                            <table table width='100%'>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Max AC</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <input id=\"maxAcValue0\" type=\"text\" value=\"0\" class=\"big-text\" oninput=\"maxAcValue0Change()\"/>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' id=\"maxAcValue0Button\" onclick=\"maxAcValue0()\" disabled>&#10004;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Offset</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <input id=\"dacOffset0\" type=\"text\" value=\"0\" class=\"big-text\" oninput=\"dacOffset0Change()\"/>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' id=\"dacOffset0Button\" onclick=\"dacOffset0()\" disabled>&#10004;</button>\n                                    </td>\n                                </tr>\n                            </table>\n                        </div>\n                   </div>\n                </div>\n",
+        "output": "str",
+        "x": 950,
+        "y": 260,
+        "wires": [
+            [
+                "916e9d8f.7f58e"
+            ]
+        ]
+    },
+    {
+        "id": "916e9d8f.7f58e",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "html.quad",
+        "field": "payload.html.quad",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!-- Dipole HTML -->\n                <div class='card'>\n                    <p class='card-title'>Quadrupole</p>\n                    <div class='card-body' align=\"center\">\n                        <div class='row' style='padding-bottom: 25px;'>\n                            <table width='100%'>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>On (0 - 1)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"chanOn1(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='chanOn1'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"chanOn1(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Sign (-1 - +1)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"sign1(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='sign1'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"sign1(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Gain (-4 - +4)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"gain1(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='gain1'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"gain1(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Filter Tap (1 - 20)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"timeOffset1(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='timeOffset1'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"timeOffset1(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                           </table>\n                            <table table width='100%'>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Max AC</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <input id=\"maxAcValue1\" type=\"text\" value=\"0\" class=\"big-text\" oninput=\"maxAcValue1Change()\"/>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' id=\"maxAcValue1Button\" onclick=\"maxAcValue1()\" disabled>&#10004;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Offset</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <input id=\"dacOffset1\" type=\"text\" value=\"0\" class=\"big-text\" oninput=\"dacOffset1Change()\"/>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' id=\"dacOffset1Button\" onclick=\"dacOffset1()\" disabled>&#10004;</button>\n                                    </td>\n                                </tr>\n                            </table>\n                        </div>\n                   </div>\n                </div>\n",
+        "output": "str",
+        "x": 940,
+        "y": 300,
+        "wires": [
+            [
+                "28cd98f1.2a1518"
+            ]
+        ]
+    },
+    {
+        "id": "89701bdf.c255a8",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "javascript",
+        "field": "payload.javascript",
+        "fieldType": "msg",
+        "format": "javascript",
+        "syntax": "mustache",
+        "template": "{{{payload.script.global}}}\n{{{payload.script.updateReadings}}}\n{{{payload.script.dipole}}}\n{{{payload.script.quad}}}\n",
+        "output": "str",
+        "x": 480,
+        "y": 1260,
+        "wires": [
+            [
+                "f1035634.bbe518"
+            ]
+        ]
+    },
+    {
+        "id": "f1035634.bbe518",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "html.dipole",
+        "field": "payload.html.dipole",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!-- Dipole HTML -->\n                <div class='card'>\n                    <p class='card-title'>Dipole</p>\n                    <div class='card-body' align=\"center\">\n                        <div class='row' style='padding-bottom: 25px;'>\n                            <table width='100%'>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>On (0 - 1)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"chanOn0(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='chanOn0'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"chanOn0(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Sign (-1 - +1)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"sign0(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='sign0'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"sign0(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Gain (-4 - +4)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"gain0(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='gain0'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"gain0(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Filter Tap (1 - 20)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"timeOffset0(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='timeOffset0'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"timeOffset0(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                           </table>\n                            <table table width='100%'>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Max AC</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <input id=\"maxAcValue0\" type=\"text\" value=\"0\" class=\"big-text\" oninput=\"maxAcValue0Change()\"/>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' id=\"maxAcValue0Button\" onclick=\"maxAcValue0()\" disabled>&#10004;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Offset</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <input id=\"dacOffset0\" type=\"text\" value=\"0\" class=\"big-text\" oninput=\"dacOffset0Change()\"/>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' id=\"dacOffset0Button\" onclick=\"dacOffset0()\" disabled>&#10004;</button>\n                                    </td>\n                                </tr>\n                            </table>\n                        </div>\n                   </div>\n                </div>\n",
+        "output": "str",
+        "x": 810,
+        "y": 1100,
+        "wires": [
+            [
+                "61b7a89f.8e2048"
+            ]
+        ]
+    },
+    {
+        "id": "ab67f445.20d7d8",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "script.global",
+        "field": "payload.script.global",
+        "fieldType": "msg",
+        "format": "javascript",
+        "syntax": "mustache",
+        "template": "// Global Javascript\n        var restfulDevice = \n        {\n            deviceType  : '{{{payload.script.deviceType}}}',\n            name        : '{{{payload.script.name}}}',\n            project     : '{{{payload.script.project}}}'\n        };\n        var mqttDevice = null;\n        var device = null;\n\n        useWebSockets(true);\n        function onDocumentReady()\n        {\n        }\n        function onWebSocketOpen()\n        {\n        }\n        function onWebSocketClose()\n        {\n            \n        }\n        function onWebSocketMessage(msg)\n        {\n            switch(msg.topic)\n            {\n                case 'readings':\n                    if (msg.mqttDevice.name == restfulDevice.name)\n                    {\n                        heartbeat();\n                        device = msg.payload;\n                        mqttDevice = msg.mqttDevice;\n                        updateDmaReadings();\n                    }\n                    break;\n                case 'getJwtToken':\n                    if (msg.userID == userID) loadJwtToken(msg);\n                    break;\n                case 'settingAcknowledge':\n                    if (msg.userID == userID)\n                    {\n                        if (msg.payload != 'Success!') acknowledgeDialog('Acknowledge', 'Setting', msg.payload);\n                    }\n                    break;\n                default:\n                // code block\n            }\n        }\n",
+        "output": "str",
+        "x": 490,
+        "y": 1100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "61b7a89f.8e2048",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "html.quad",
+        "field": "payload.html.quad",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!-- Dipole HTML -->\n                <div class='card'>\n                    <p class='card-title'>Quadrupole</p>\n                    <div class='card-body' align=\"center\">\n                        <div class='row' style='padding-bottom: 25px;'>\n                            <table width='100%'>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>On (0 - 1)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"chanOn1(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='chanOn1'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"chanOn1(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Sign (-1 - +1)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"sign1(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='sign1'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"sign1(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Gain (-4 - +4)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"gain1(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='gain1'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"gain1(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Filter Tap (1 - 20)</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"timeOffset1(-1)\">&#9660;</button>\n                                    </td>\n                                    <td width='10%' align='center'>\n                                        <span class='card-text' id='timeOffset1'>-1</span>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' onclick=\"timeOffset1(1)\">&#9650;</button>\n                                    </td>\n                                </tr>\n                           </table>\n                            <table table width='100%'>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Max AC</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <input id=\"maxAcValue1\" type=\"text\" value=\"0\" class=\"big-text\" oninput=\"maxAcValue1Change()\"/>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' id=\"maxAcValue1Button\" onclick=\"maxAcValue1()\" disabled>&#10004;</button>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='70%' align='left'>\n                                        <span class='card-text'>Offset</span>\n                                    </td>\n                                    <td width='20%' align='center'>\n                                        <input id=\"dacOffset1\" type=\"text\" value=\"0\" class=\"big-text\" oninput=\"dacOffset1Change()\"/>\n                                    </td>\n                                    <td width='10%'>\n                                        <button class='btn card-button btn-block card-title' id=\"dacOffset1Button\" onclick=\"dacOffset1()\" disabled>&#10004;</button>\n                                    </td>\n                                </tr>\n                            </table>\n                        </div>\n                   </div>\n                </div>\n",
+        "output": "str",
+        "x": 800,
+        "y": 1140,
+        "wires": [
+            [
+                "666857af.4d8d38"
+            ]
+        ]
+    },
+    {
+        "id": "666857af.4d8d38",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "html.wifimon",
+        "field": "payload.html.wifimon",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!-- Dashboard HTML -->\n                <div class='card'>\n                    <p class='card-title'>WiFi Connection</p>\n                    <div class='card-body' align=\"center\">\n                        <div class='row'  style='padding-top: 0px;'>\n                            <table width='100%'>\n                                <tr>\n                                    <td width='60%' >\n                                        <span class='card-text' >Device Update</span>\n                                    </td>\n                                    <td width='20%' align='center'></td>\n                                    <td width='20%' align='center'>\n                                        <img src='/img/heartRed.png' id='heartBeatID' width='100px' height='100px'/>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='60%' >\n                                        <span class='card-text' >Signal Level (dBm)</span>\n                                    </td>\n                                    <td width='20%' align='center'></td>\n                                    <td width='20%' align='center'>\n                                        <span class='card-text' id='signalLevelId' >-100</span>\n                                    </td>\n                                </tr>\n                                <tr>\n                                    <td width='60%' >\n                                        <span class='card-text' >Link Quality (/70)</span>\n                                    </td>\n                                    <td width='20%' align='center'></td>\n                                    <td width='20%' align='center'>\n                                        <span class='card-text' id='linkQualityId' >-1</span>\n                                    </td>\n                                </tr>\n                            </table>\n                        </div>\n                    </div>\n                </div>\n",
+        "output": "str",
+        "x": 810,
+        "y": 1180,
+        "wires": [
+            [
+                "48a803c0.3deb0c"
+            ]
+        ]
+    },
+    {
+        "id": "48a803c0.3deb0c",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "body",
+        "field": "payload.body",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "    <div width=\"100%\">\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12' align='center'>\n{{{payload.html.dipole}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12' align='center'>\n{{{payload.html.quad}}}\n            </div>\n        </div>\n        <div class='row' style='padding-bottom: 25px;'>\n            <div class='col-md-12'>\n{{{payload.html.wifimon}}}\n            </div>\n        </div>\n    </div>",
+        "output": "str",
+        "x": 790,
+        "y": 1220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3c7d21bd.ff843e",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "script.dipole",
+        "field": "payload.script.dipole",
+        "fieldType": "msg",
+        "format": "javascript",
+        "syntax": "mustache",
+        "template": "function chanOn0(up)\n{\n    var chanOn0 = Number($('#chanOn0').html());\n    chanOn0 = chanOn0 + up;\n    if (chanOn0 > 1) chanOn0 = 1;\n    if (chanOn0 < 0) chanOn0 = 0;\n    setScalarValue(chanOn0, 'onDipole');\n}\nfunction sign0(up)\n{\n    var sign0 = Number($('#sign0').html());\n    sign0 = sign0 + 2 * up;\n    if (sign0 > 1) sign0 = 1;\n    if (sign0 < -1) sign0 = -1;\n    setScalarValue(sign0, 'signDipole');\n}\nfunction gain0(up)\n{\n    var gain0 = Number($('#gain0').html());\n    gain0 = gain0 + up;\n    if (gain0 > 4) gain0 = 4;\n    if (gain0 < -4) gain0 = -4;\n    setScalarValue(gain0, 'gainDipole');\n}\nfunction timeOffset0(up)\n{\n    var timeOffset0 = Number($('#timeOffset0').html());\n    timeOffset0 = timeOffset0 + up;\n    if (timeOffset0 > 20) timeOffset0 = 20;\n    if (timeOffset0 < 1) timeOffset0 = 1;\n    setScalarValue(timeOffset0, 'filterDipole');\n}\nvar maxAcValue0Changed = false;\nfunction maxAcValue0Change()\n{\n    maxAcValue0Changed = true;\n    $('#maxAcValue0Button').prop('disabled', false);\n \n}\nfunction maxAcValue0()\n{\n    $('#maxAcValue0Button').prop('disabled', true);\n    if (isNaN($('#maxAcValue0').val()))\n    {\n        maxAcValue0Changed = false;\n        return;\n    }\n    var maxAcValue0 = Number($('#maxAcValue0').val());\n    setScalarValue(maxAcValue0, 'maxAcDipole');\n    maxAcValue0Changed = false;\n}\nvar dacOffset0Changed = false;\nfunction dacOffset0Change()\n{\n    dacOffset0Changed = true;\n    $('#dacOffset0Button').prop('disabled', false);\n \n}\nfunction dacOffset0()\n{\n    $('#dacOffset0Button').prop('disabled', true);\n    if (isNaN($('#dacOffset0').val()))\n    {\n        dacOffset0Changed = false;\n        return;\n    }\n    var dacOffset0 = Number($('#dacOffset0').val());\n    setScalarValue(dacOffset0, 'offsetDipole');\n    dacOffset0Changed = false;\n}\nfunction updateDipoleReadings()\n{\n    $('#chanOn0').text(device.onDipole.value.toString());\n    $('#sign0').text(device.signDipole.value.toString());\n    $('#gain0').text(device.gainDipole.value.toString());\n    $('#timeOffset0').text(device.filterDipole.value.toString());\n    if (!$('#maxAcValue0').is(':focus') && !maxAcValue0Changed) $('#maxAcValue0').val(device.maxAcDipole.value.toString());\n    if (!$('#dacOffset0').is(':focus')  && !dacOffset0Changed)  $('#dacOffset0').val(device.offsetDipole.value.toString());\n}\n",
+        "output": "str",
+        "x": 630,
+        "y": 300,
+        "wires": [
+            [
+                "b961b4ae.1b9928"
+            ]
+        ]
+    },
+    {
+        "id": "b961b4ae.1b9928",
+        "type": "template",
+        "z": "c4285970.3276d8",
+        "name": "script.quad",
+        "field": "payload.script.quad",
+        "fieldType": "msg",
+        "format": "javascript",
+        "syntax": "mustache",
+        "template": "function chanOn1(up)\n{\n    var chanOn1 = Number($('#chanOn1').html());\n    chanOn1 = chanOn1 + up;\n    if (chanOn1 > 1) chanOn1 = 1;\n    if (chanOn1 < 0) chanOn1 = 0;\n    setScalarValue(chanOn1, 'onQuad');\n}\nfunction sign1(up)\n{\n    var sign1 = Number($('#sign1').html());\n    sign1 = sign1 + 2 * up;\n    if (sign1 > 1) sign1 = 1;\n    if (sign1 < -1) sign1 = -1;\n    setScalarValue(sign1, 'signQuad');\n}\nfunction gain1(up)\n{\n    var gain1 = Number($('#gain1').html());\n    gain1 = gain1 + up;\n    if (gain1 > 4) gain1 = 4;\n    if (gain1 < -4) gain1 = -4;\n    setScalarValue(gain1, 'gainQuad');\n}\nfunction timeOffset1(up)\n{\n    var timeOffset1 = Number($('#timeOffset1').html());\n    timeOffset1 = timeOffset1 + up;\n    if (timeOffset1 > 20) timeOffset1 = 20;\n    if (timeOffset1 < 1) timeOffset1 = 1;\n    setScalarValue(timeOffset1, 'filterQuad');\n}\nvar maxAcValue1Changed = false;\nfunction maxAcValue1Change()\n{\n    maxAcValue1Changed = true;\n    $('#maxAcValue1Button').prop('disabled', false);\n \n}\nfunction maxAcValue1()\n{\n    $('#maxAcValue1Button').prop('disabled', true);\n    if (isNaN($('#maxAcValue1').val()))\n    {\n        maxAcValue1Changed = false;\n        return;\n    }\n    var maxAcValue1 = Number($('#maxAcValue1').val());\n    setScalarValue(maxAcValue1, 'maxAcQuad');\n    maxAcValue1Changed = false;\n}\nvar dacOffset1Changed = false;\nfunction dacOffset1Change()\n{\n    dacOffset1Changed = true;\n    $('#dacOffset1Button').prop('disabled', false);\n \n}\nfunction dacOffset1()\n{\n    $('#dacOffset1Button').prop('disabled', true);\n    if (isNaN($('#dacOffset1').val()))\n    {\n        dacOffset1Changed = false;\n        return;\n    }\n    var dacOffset1 = Number($('#dacOffset1').val());\n    setScalarValue(dacOffset1, 'offsetQuad');\n    dacOffset1Changed = false;\n}\nfunction updateQuadReadings()\n{\n    $('#chanOn1').text(device.onQuad.value.toString());\n    $('#sign1').text(device.signQuad.value.toString());\n    $('#gain1').text(device.gainQuad.value.toString());\n    $('#timeOffset1').text(device.filterQuad.value.toString());\n    if (!$('#maxAcValue1').is(':focus') && !maxAcValue1Changed) $('#maxAcValue1').val(device.maxAcQuad.value.toString());\n    if (!$('#dacOffset1').is(':focus')  && !dacOffset1Changed)  $('#dacOffset1').val(device.offsetQuad.value.toString());\n}\n",
+        "output": "str",
+        "x": 630,
+        "y": 340,
+        "wires": [
+            [
+                "2f9f8abf.a80656"
+            ]
+        ]
+    },
+    {
+        "id": "a8fab79c.a492d8",
+        "type": "function",
+        "z": "5f562f66.a301e",
+        "name": "Settings Sent",
+        "func": "return {topic:'settingsSent',payload:true};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 570,
+        "y": 400,
+        "wires": [
+            [
+                "9115ea87.0ca208"
+            ]
+        ]
     }
 ]
